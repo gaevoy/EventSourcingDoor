@@ -6,6 +6,11 @@
 
     <ItemGroup>
       <PackageReference Include="DotNetCore.CAP" Version="3.1.2" />
+      <PackageReference Include="DotNetCore.CAP.SqlServer" Version="3.1.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\EventSourcingDoor\EventSourcingDoor.csproj" />
     </ItemGroup>
 
 </Project>
