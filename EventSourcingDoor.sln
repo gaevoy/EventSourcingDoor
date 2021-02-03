@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor", "EventSourcingDoor\EventSourcingDoor.csproj", "{1675FDFD-1774-4379-A11D-BB3BFB631E77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.Tests", "EventSourcingDoor.Tests\EventSourcingDoor.Tests.csproj", "{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.Cap", "EventSourcingDoor.Cap\EventSourcingDoor.Cap.csproj", "{6E914DCA-0DAB-4F0B-973F-E9FC57E42524}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1675FDFD-1774-4379-A11D-BB3BFB631E77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1675FDFD-1774-4379-A11D-BB3BFB631E77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1675FDFD-1774-4379-A11D-BB3BFB631E77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1675FDFD-1774-4379-A11D-BB3BFB631E77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E914DCA-0DAB-4F0B-973F-E9FC57E42524}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E914DCA-0DAB-4F0B-973F-E9FC57E42524}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E914DCA-0DAB-4F0B-973F-E9FC57E42524}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E914DCA-0DAB-4F0B-973F-E9FC57E42524}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
