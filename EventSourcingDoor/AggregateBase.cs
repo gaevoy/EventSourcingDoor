@@ -12,6 +12,7 @@ namespace EventSourcingDoor
         protected abstract ChangeLogDefinition<TAggregate> Definition { get; }
         private readonly ChangeLog<TAggregate, TEventBase> _changes;
         public IChangeLog Changes => _changes;
+        public abstract string StreamId { get; }
 
         protected AggregateBase()
         {

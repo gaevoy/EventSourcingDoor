@@ -1,6 +1,10 @@
 using System;
-using Microsoft.EntityFrameworkCore;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Transactions;
 using NUnit.Framework;
+using SqlStreamStore;
 
 namespace EventSourcingDoor.Tests
 {
@@ -28,24 +32,69 @@ namespace EventSourcingDoor.Tests
             user2.Changes.LoadFromHistory(user.Changes.GetUncommittedChanges());
         }
 
-        [Test]
-        public void Save()
+        public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
+        private IStreamStore _streamStore;
+
+        [SetUp]
+        public async Task InitDatabase()
         {
-            var user = new UserAggregate(Guid.NewGuid(), "Bond");
-
-
-            var user2 = new UserAggregate();
-            user2.Changes.LoadFromHistory(user.Changes.GetUncommittedChanges());
+            var streamStore = new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings(ConnectionString));
+            _streamStore = streamStore;
+            var db = new Db(ConnectionString, _streamStore);
+            //await streamStore.CreateSchemaIfNotExists();
+            //db.Database.CreateIfNotExists();
         }
-        
-        public class TestDbContext : DbContextBase
+
+        [Test]
+        public async Task SaveAsync()
         {
-            public TestDbContext(string connectionString) : base(new DbContextOptionsBuilder<TestDbContext>().UseSqlServer(connectionString).Options)
+            var newUser = new UserAggregate(Guid.NewGuid(), "Bond");
+            newUser.Rename("James Bond");
+
+            using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using (var db = new Db(ConnectionString, _streamStore))
+            {
+                // db.Users.Add(newUser);
+                // await db.SaveChangesAsync();
+
+                var users = await db.Users.ToListAsync();
+                foreach (var user in users)
+                {
+                    user.Rename(user.Name + "6");
+                }
+
+                await db.SaveChangesAsync();
+                transaction.Complete();
+            }
+        }
+
+        [Test]
+        public void SaveSync()
+        {
+            using (var transaction = new TransactionScope())
+            using (var db = new Db(ConnectionString, _streamStore))
+            {
+                // db.Users.Add(newUser);
+                // await db.SaveChangesAsync();
+
+                var users = db.Users.ToList();
+                foreach (var user in users)
+                {
+                    user.Rename(user.Name + "7");
+                }
+
+                db.SaveChanges();
+                transaction.Complete();
+            }
+        }
+
+        public class Db : EventSourcedDbContext
+        {
+            public Db(string connectionString, IStreamStore streamStore) : base(connectionString, streamStore)
             {
             }
 
             public DbSet<UserAggregate> Users { get; set; }
         }
-
     }
 }

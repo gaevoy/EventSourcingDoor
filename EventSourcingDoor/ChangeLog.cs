@@ -6,11 +6,11 @@ namespace EventSourcingDoor
 {
     public static class ChangeLog
     {
-        public static ChangeLogDefinition<TState> For<TState>()
+        public static ChangeLogDefinition<TState> For<TState>() where TState : IHaveStreamId
             => new ChangeLogDefinition<TState>();
     }
 
-    public class ChangeLog<TState> : IChangeLog
+    public class ChangeLog<TState> : IChangeLog where TState : IHaveStreamId
     {
         private readonly TState _state;
         private readonly ChangeLogDefinition<TState> _definition;
@@ -23,6 +23,8 @@ namespace EventSourcingDoor
             _definition = definition;
             _versionState = state is IHaveVersion versionState ? versionState : null;
         }
+
+        public string StreamId => _state.StreamId;
 
         public IEnumerable<IEvent> GetUncommittedChanges() => _changes;
 
@@ -46,7 +48,7 @@ namespace EventSourcingDoor
         }
     }
 
-    public class ChangeLog<TState, TEventBase> : ChangeLog<TState>
+    public class ChangeLog<TState, TEventBase> : ChangeLog<TState> where TState : IHaveStreamId
     {
         public ChangeLog(TState state, ChangeLogDefinition<TState> definition) : base(state, definition)
         {

@@ -2,7 +2,7 @@ using System;
 
 namespace EventSourcingDoor.Tests
 {
-    public class User : IHaveChangeLog, IHaveVersion
+    public class User : IHaveChangeLog, IHaveVersion, IHaveStreamId
     {
         public Guid Id { get; private set; }
         public long Version { get; set; }
@@ -13,8 +13,10 @@ namespace EventSourcingDoor.Tests
             .On<UserRegistered>((self, evt) => self.When(evt))
             .On<UserNameChanged>((self, evt) => self.When(evt));
 
+        public string StreamId => Id.ToString("N");
         public IChangeLog Changes => _changes;
         private readonly ChangeLog<User, IDomainEvent> _changes;
+
 
         public User()
         {

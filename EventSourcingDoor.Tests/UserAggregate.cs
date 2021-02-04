@@ -4,8 +4,10 @@ namespace EventSourcingDoor.Tests
 {
     public class UserAggregate : AggregateBase<UserAggregate, IDomainEvent>
     {
+        public override string StreamId => Id.ToString("N");
         public Guid Id { get; private set; }
         public string Name { get; private set; }
+
 
         private static readonly ChangeLogDefinition<UserAggregate> CachedDefinition = ChangeLog
             .For<UserAggregate>()

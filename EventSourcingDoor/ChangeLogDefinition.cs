@@ -3,7 +3,7 @@ using IEvent = System.Object;
 
 namespace EventSourcingDoor
 {
-    public class ChangeLogDefinition<TState>
+    public class ChangeLogDefinition<TState> where TState : IHaveStreamId
     {
         private Action<TState, IEvent> _handle = (state, evt) => { };
 

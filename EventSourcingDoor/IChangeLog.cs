@@ -3,7 +3,7 @@ using IEvent = System.Object;
 
 namespace EventSourcingDoor
 {
-    public interface IChangeLog
+    public interface IChangeLog: IHaveStreamId
     {
         IEnumerable<IEvent> GetUncommittedChanges();
         void MarkChangesAsCommitted();
