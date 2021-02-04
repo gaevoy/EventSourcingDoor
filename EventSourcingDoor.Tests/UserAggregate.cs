@@ -7,12 +7,12 @@ namespace EventSourcingDoor.Tests
         public Guid Id { get; private set; }
         public string Name { get; private set; }
 
-        private static readonly ChangeLogDefinition<UserAggregate, IDomainEvent> CachedDefinition = ChangeLog
-            .For<UserAggregate, IDomainEvent>()
+        private static readonly ChangeLogDefinition<UserAggregate> CachedDefinition = ChangeLog
+            .For<UserAggregate>()
             .On<UserRegistered>((self, evt) => self.When(evt))
             .On<UserNameChanged>((self, evt) => self.When(evt));
 
-        protected override ChangeLogDefinition<UserAggregate, IDomainEvent> Definition => CachedDefinition;
+        protected override ChangeLogDefinition<UserAggregate> Definition => CachedDefinition;
 
         public UserAggregate()
         {

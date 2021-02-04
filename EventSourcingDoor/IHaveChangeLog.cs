@@ -1,7 +1,7 @@
 namespace EventSourcingDoor
 {
-    public interface IHaveChangeLog<TEventBase>
+    public interface IHaveChangeLog
     {
-        IChangeLog<TEventBase> Changes { get; }
+        IChangeLog Changes { get; }
     }
 }

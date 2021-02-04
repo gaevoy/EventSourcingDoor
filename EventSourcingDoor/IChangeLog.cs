@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using IEvent = System.Object;
 
 namespace EventSourcingDoor
 {
-    public interface IChangeLog<TEventBase>
+    public interface IChangeLog
     {
-        IEnumerable<TEventBase> GetUncommittedChanges();
+        IEnumerable<IEvent> GetUncommittedChanges();
         void MarkChangesAsCommitted();
-        void LoadFromHistory(IEnumerable<TEventBase> history);
+        void LoadFromHistory(IEnumerable<IEvent> history);
     }
 }

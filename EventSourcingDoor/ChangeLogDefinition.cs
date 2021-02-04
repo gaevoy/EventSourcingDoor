@@ -1,12 +1,13 @@
 ﻿using System;
+using IEvent = System.Object;
 
 namespace EventSourcingDoor
 {
-    public class ChangeLogDefinition<TState, TEventBase>
+    public class ChangeLogDefinition<TState>
     {
-        private Action<TState, TEventBase> _handle = (state, evt) => { };
+        private Action<TState, IEvent> _handle = (state, evt) => { };
 
-        public ChangeLogDefinition<TState, TEventBase> On<TEvent>(Action<TState, TEvent> handler)
+        public ChangeLogDefinition<TState> On<TEvent>(Action<TState, TEvent> handler)
         {
             var next = _handle;
             _handle = (state, evt) =>
@@ -20,10 +21,13 @@ namespace EventSourcingDoor
         }
         // .UseAllMethodsWithName("When")
 
-        public ChangeLog<TState, TEventBase> New(TState state)
+        public ChangeLog<TState> New(TState state)
+            => new ChangeLog<TState>(state, this);
+
+        public ChangeLog<TState, TEventBase> New<TEventBase>(TState state)
             => new ChangeLog<TState, TEventBase>(state, this);
 
-        public void ApplyChange(TState state, TEventBase evt)
+        public void ApplyChange(TState state, IEvent evt)
             => _handle(state, evt);
     }
 }

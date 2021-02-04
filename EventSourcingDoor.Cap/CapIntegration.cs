@@ -4,7 +4,7 @@ using DotNetCore.CAP;
 
 namespace EventSourcingDoor.Cap
 {
-    public class CapIntegration<TEventBase>
+    public class CapIntegration
     {
         private readonly ICapPublisher _publisher;
 
@@ -13,14 +13,14 @@ namespace EventSourcingDoor.Cap
             _publisher = publisher;
         }
 
-        public void Flush(IHaveChangeLog<TEventBase> changeLog)
+        public void Flush(IHaveChangeLog changeLog)
         {
             foreach (var evt in changeLog.Changes.GetUncommittedChanges())
                 _publisher.Publish("", evt);
             changeLog.Changes.MarkChangesAsCommitted();
         }
 
-        public void Flush(IHaveChangeLog<TEventBase> changeLog, DbConnection connection)
+        public void Flush(IHaveChangeLog changeLog, DbConnection connection)
         {
             using (var transaction = connection.BeginTransaction(_publisher))
             {
