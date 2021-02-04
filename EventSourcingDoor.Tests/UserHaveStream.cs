@@ -2,9 +2,10 @@ using System;
 
 namespace EventSourcingDoor.Tests
 {
-    public class UserHasStream : IHasEventStream<IDomainEvent>
+    public class UserHasStream : IHaveEventStream<IDomainEvent>, IHaveVersion
     {
         public Guid Id { get; private set; }
+        public long Version { get; set; }
         public string Name { get; private set; }
 
         private static readonly StreamDefinition<UserHasStream, IDomainEvent> Definition = StreamDefinition
@@ -14,6 +15,7 @@ namespace EventSourcingDoor.Tests
 
         public IAmEventStream<IDomainEvent> EventStream => _eventStream;
         private readonly EventStream<UserHasStream, IDomainEvent> _eventStream;
+
 
         public UserHasStream()
         {
@@ -41,5 +43,4 @@ namespace EventSourcingDoor.Tests
             Name = evt.Name;
         }
     }
-
- }
+}
