@@ -1,4 +1,5 @@
 using System;
+using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 
 namespace EventSourcingDoor.Tests
@@ -26,8 +27,25 @@ namespace EventSourcingDoor.Tests
             var user2 = new UserAggregate();
             user2.Changes.LoadFromHistory(user.Changes.GetUncommittedChanges());
         }
+
+        [Test]
+        public void Save()
+        {
+            var user = new UserAggregate(Guid.NewGuid(), "Bond");
+
+
+            var user2 = new UserAggregate();
+            user2.Changes.LoadFromHistory(user.Changes.GetUncommittedChanges());
+        }
         
+        public class TestDbContext : DbContextBase
+        {
+            public TestDbContext(string connectionString) : base(new DbContextOptionsBuilder<TestDbContext>().UseSqlServer(connectionString).Options)
+            {
+            }
+
+            public DbSet<UserAggregate> Users { get; set; }
+        }
+
     }
-
-
 }
