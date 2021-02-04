@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace EventSourcingDoor
 {
-    public interface IAmEventStream<TEventBase>
+    public interface IChangeLog<TEventBase>
     {
         IEnumerable<TEventBase> GetUncommittedChanges();
         void MarkChangesAsCommitted();

@@ -13,21 +13,21 @@ namespace EventSourcingDoor.Cap
             _publisher = publisher;
         }
 
-        public void Flush(IHaveEventStream<TEventBase> eventStream)
+        public void Flush(IHaveChangeLog<TEventBase> changeLog)
         {
-            foreach (var evt in eventStream.EventStream.GetUncommittedChanges())
+            foreach (var evt in changeLog.Changes.GetUncommittedChanges())
                 _publisher.Publish("", evt);
-            eventStream.EventStream.MarkChangesAsCommitted();
+            changeLog.Changes.MarkChangesAsCommitted();
         }
 
-        public void Flush(IHaveEventStream<TEventBase> eventStream, DbConnection connection)
+        public void Flush(IHaveChangeLog<TEventBase> changeLog, DbConnection connection)
         {
             using (var transaction = connection.BeginTransaction(_publisher))
             {
-                foreach (var evt in eventStream.EventStream.GetUncommittedChanges())
+                foreach (var evt in changeLog.Changes.GetUncommittedChanges())
                     _publisher.Publish("", evt);
                 transaction.Commit();
-                eventStream.EventStream.MarkChangesAsCommitted();
+                changeLog.Changes.MarkChangesAsCommitted();
             }
         }
     }

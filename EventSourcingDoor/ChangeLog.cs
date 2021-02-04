@@ -2,14 +2,20 @@ using System.Collections.Generic;
 
 namespace EventSourcingDoor
 {
-    public class EventStream<TState, TEventBase> : IAmEventStream<TEventBase>
+    public static class ChangeLog
+    {
+        public static ChangeLogDefinition<TState, TEventBase> For<TState, TEventBase>()
+            => new ChangeLogDefinition<TState, TEventBase>();
+    }
+
+    public class ChangeLog<TState, TEventBase> : IChangeLog<TEventBase>
     {
         private readonly TState _state;
-        private readonly StreamDefinition<TState, TEventBase> _definition;
+        private readonly ChangeLogDefinition<TState, TEventBase> _definition;
         private readonly List<TEventBase> _changes = new List<TEventBase>();
         private readonly IHaveVersion _versionState;
 
-        public EventStream(TState state, StreamDefinition<TState, TEventBase> definition)
+        public ChangeLog(TState state, ChangeLogDefinition<TState, TEventBase> definition)
         {
             _state = state;
             _definition = definition;

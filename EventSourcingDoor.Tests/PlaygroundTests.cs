@@ -8,23 +8,23 @@ namespace EventSourcingDoor.Tests
         [Test]
         public void Test1()
         {
-            var user = new UserHasStream(Guid.NewGuid(), "Bond");
+            var user = new User(Guid.NewGuid(), "Bond");
             user.Rename("James Bond");
-            var events = user.EventStream.GetUncommittedChanges();
+            var events = user.Changes.GetUncommittedChanges();
 
-            var user2 = new UserHasStream();
-            user2.EventStream.LoadFromHistory(user.EventStream.GetUncommittedChanges());
+            var user2 = new User();
+            user2.Changes.LoadFromHistory(user.Changes.GetUncommittedChanges());
         }
 
         [Test]
         public void Test2()
         {
-            var user = new UserIsStream(Guid.NewGuid(), "Bond");
+            var user = new UserAggregate(Guid.NewGuid(), "Bond");
             user.Rename("James Bond");
-            var events = user.EventStream.GetUncommittedChanges();
+            var events = user.Changes.GetUncommittedChanges();
 
-            var user2 = new UserIsStream();
-            user2.EventStream.LoadFromHistory(user.EventStream.GetUncommittedChanges());
+            var user2 = new UserAggregate();
+            user2.Changes.LoadFromHistory(user.Changes.GetUncommittedChanges());
         }
         
     }
