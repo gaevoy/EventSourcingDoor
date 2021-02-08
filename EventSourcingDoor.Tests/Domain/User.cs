@@ -1,6 +1,6 @@
 using System;
 
-namespace EventSourcingDoor.Tests
+namespace EventSourcingDoor.Tests.Domain
 {
     public class User : IHaveChangeLog, IHaveVersion, IHaveStreamId
     {

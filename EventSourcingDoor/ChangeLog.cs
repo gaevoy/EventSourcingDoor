@@ -32,8 +32,15 @@ namespace EventSourcingDoor
 
         public void LoadFromHistory(IEnumerable<IEvent> history)
         {
+            long version = 0;
             foreach (var evt in history)
+            {
+                version++;
                 _definition.ApplyChange(_state, evt);
+            }
+
+            if (_versionState != null)
+                _versionState.Version = version;
         }
 
         public void ApplyChange(IEvent evt)

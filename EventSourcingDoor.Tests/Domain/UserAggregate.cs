@@ -1,13 +1,13 @@
 using System;
 
-namespace EventSourcingDoor.Tests
+namespace EventSourcingDoor.Tests.Domain
 {
-    public class UserAggregate : AggregateBase<UserAggregate, IDomainEvent>
+    public class UserAggregate : AggregateBase<UserAggregate, IDomainEvent>, IHaveVersion
     {
         public override string StreamId => Id.ToString("N");
         public Guid Id { get; private set; }
         public string Name { get; private set; }
-
+        public long Version { get; set; }
 
         private static readonly ChangeLogDefinition<UserAggregate> CachedDefinition = ChangeLog
             .For<UserAggregate>()
@@ -15,6 +15,7 @@ namespace EventSourcingDoor.Tests
             .On<UserNameChanged>((self, evt) => self.When(evt));
 
         protected override ChangeLogDefinition<UserAggregate> Definition => CachedDefinition;
+
 
         public UserAggregate()
         {

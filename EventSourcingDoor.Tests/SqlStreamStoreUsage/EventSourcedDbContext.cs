@@ -5,11 +5,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using EventSourcingDoor.Tests.Utils;
 using Newtonsoft.Json;
 using SqlStreamStore;
 using SqlStreamStore.Streams;
 
-namespace EventSourcingDoor.Tests
+namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
 {
     public abstract class EventSourcedDbContext : DbContext
     {
@@ -23,29 +24,27 @@ namespace EventSourcingDoor.Tests
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellation)
         {
-            using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var transaction = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted);
+            var changeLogs = GetChangeLogs();
+            var result = await base.SaveChangesAsync(cancellation);
+            foreach (var changeLog in changeLogs)
             {
-                var changeLogs = GetChangeLogs();
-                var result = await base.SaveChangesAsync(cancellation);
-                foreach (var changeLog in changeLogs)
-                {
-                    var streamMessages = changeLog
-                        .GetUncommittedChanges()
-                        .Select(e => new NewStreamMessage(
-                            Guid.NewGuid(),
-                            e.GetType().FullName,
-                            JsonConvert.SerializeObject(e)))
-                        .ToArray();
-                    await _streamStore.AppendToStream(
-                        changeLog.StreamId,
-                        ExpectedVersion.Any,
-                        streamMessages, cancellation);
-                    changeLog.MarkChangesAsCommitted();
-                }
-
-                transaction.Complete();
-                return result;
+                var streamMessages = changeLog
+                    .GetUncommittedChanges()
+                    .Select(e => new NewStreamMessage(
+                        Guid.NewGuid(),
+                        e.GetType().FullName,
+                        JsonConvert.SerializeObject(e)))
+                    .ToArray();
+                await _streamStore.AppendToStream(
+                    changeLog.StreamId,
+                    ExpectedVersion.Any,
+                    streamMessages, cancellation);
+                changeLog.MarkChangesAsCommitted();
             }
+
+            transaction.Complete();
+            return result;
         }
 
         public override int SaveChanges()
