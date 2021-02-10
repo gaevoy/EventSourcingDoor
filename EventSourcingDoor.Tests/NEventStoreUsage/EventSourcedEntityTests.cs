@@ -9,29 +9,32 @@ using EventSourcingDoor.Tests.Utils;
 using FluentAssertions;
 using NEventStore;
 using NEventStore.Persistence.Sql.SqlDialects;
+using NEventStore.PollingClient;
 using NEventStore.Serialization.Json;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
 namespace EventSourcingDoor.Tests.NEventStoreUsage
 {
+    [Parallelizable(ParallelScope.None)]
     public class EventSourcedEntityTests
     {
         private static Randomizer Random => TestContext.CurrentContext.Random;
         public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
-        private IStoreEvents _store;
+        private IStoreEvents _eventStore;
 
         [SetUp]
-        public async Task EnsureSchemaInitialized()
+        public void EnsureSchemaInitialized()
         {
-            IStoreEvents store = Wireup.Init()
+            var eventStore = Wireup.Init()
                 .UsingSqlPersistence(null, "System.Data.SqlClient", ConnectionString)
                 .WithDialect(new MsSqlDialect())
                 .InitializeStorageEngine()
                 .UsingJsonSerialization()
                 .Build();
-            _store = store;
-            var db = new EventSourcedEntityFramework(ConnectionString, _store);
+            eventStore.Advanced.Purge();
+            _eventStore = eventStore;
+            var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
             db.Database.CreateIfNotExists();
         }
 
@@ -86,6 +89,34 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
         }
 
         [Test]
+        public async Task It_should_rollback_both_entity_and_change_log()
+        {
+            // Given
+            var id = Guid.NewGuid();
+            var user = new UserAggregate(id, "Bond");
+            var changeLog = user.GetUncommittedChanges().ToList();
+            await InsertUser(user);
+            user = await LoadUser(user.Id);
+
+            // When
+            using (var tran = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted))
+            {
+                user.Rename("James Bond");
+                await UpdateUser(user);
+            }
+
+            // Then
+            var savedUser = await LoadUser(user.Id);
+            var savedChangeLog = await LoadChangeLog(user.StreamId);
+            savedUser.Should().BeEquivalentTo(new UserAggregate(id, "Bond"));
+            for (var i = 0; i < savedChangeLog.Count; i++)
+            {
+                savedChangeLog[i].Should().BeEquivalentTo((object) changeLog[i]);
+                savedChangeLog[i].Should().BeOfType(changeLog[i].GetType());
+            }
+        }
+
+        [Test]
         public async Task Long_transaction_should_not_block_short_transactions()
         {
             // Warm-up
@@ -117,25 +148,21 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
             logsAfterShortTask.OfType<UserRegistered>().Should().Contain(e => e.Id == user2.Id);
             logs.OfType<UserRegistered>().Should().Contain(e => e.Id == user1.Id);
             logs.OfType<UserRegistered>().Should().Contain(e => e.Id == user2.Id);
-        } /*
+        }
 
         [Test]
         public async Task Catchup_subscription_should_not_drop_messages()
         {
             // Given
             var events = new List<IDomainEvent>();
-            _store.SubscribeToAll(null, ReceiveEvent);
-            await Task.Delay(1000);
-
-            async Task ReceiveEvent(IAllStreamSubscription _, StreamMessage message, CancellationToken __)
+            var pollingClient = new PollingClient2(_eventStore.Advanced, commit =>
             {
-                var data = await message.GetJsonData();
-                Console.WriteLine(message.Position + ": " + data);
-                var evt = (IDomainEvent) JsonConvert.DeserializeObject(data, Type.GetType(message.Type));
                 lock (events)
-                    events.Add(evt);
-            }
-
+                    events.AddRange(commit.Events.Select(e => e.Body).OfType<IDomainEvent>());
+                return PollingClient2.HandlingResult.MoveToNext;
+            });
+            pollingClient.StartFrom();
+            await Task.Delay(1000);
 
             var user1 = new UserAggregate(Random.NextGuid(), "User#1");
             var user2 = new UserAggregate(Random.NextGuid(), "User#2");
@@ -160,25 +187,25 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
                 events.OfType<UserRegistered>().Should().Contain(e => e.Id == user1.Id);
                 events.OfType<UserRegistered>().Should().Contain(e => e.Id == user2.Id);
             }
-        }*/
+        }
 
         private async Task InsertUser(UserAggregate user)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _store);
+            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
             db.Users.Add(user);
             await db.SaveChangesAsync();
         }
 
         private async Task UpdateUser(UserAggregate user)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _store);
+            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
             db.Entry(user).State = EntityState.Modified;
             await db.SaveChangesAsync();
         }
 
         private async Task<UserAggregate> LoadUser(Guid id)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _store);
+            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
             return await db.Users.FindAsync(id);
         }
 
@@ -193,7 +220,7 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
 
         private async Task<List<IDomainEvent>> LoadChangeLog(string streamId)
         {
-            return _store.Advanced.GetFrom(Bucket.Default, streamId, 0, int.MaxValue)
+            return _eventStore.Advanced.GetFrom(Bucket.Default, streamId, 0, int.MaxValue)
                 .SelectMany(e => e.Events)
                 .Select(e => e.Body)
                 .OfType<IDomainEvent>()
@@ -202,7 +229,7 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
 
         private async Task<List<IDomainEvent>> LoadAllChangeLogs()
         {
-            return _store.Advanced.GetFrom(0)
+            return _eventStore.Advanced.GetFrom(0)
                 .SelectMany(e => e.Events)
                 .Select(e => e.Body)
                 .OfType<IDomainEvent>()

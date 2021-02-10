@@ -20,16 +20,16 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
     {
         private static Randomizer Random => TestContext.CurrentContext.Random;
         public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
-        private IStreamStore _streamStore;
+        private IStreamStore _eventStore;
 
         [SetUp]
         public async Task EnsureSchemaInitialized()
         {
-            var streamStore = new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings(ConnectionString));
-            _streamStore = streamStore;
-            var db = new EventSourcedEntityFramework(ConnectionString, _streamStore);
-            await streamStore.DropAll();
-            await streamStore.CreateSchemaIfNotExists();
+            var eventStore = new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings(ConnectionString));
+            await eventStore.DropAll();
+            await eventStore.CreateSchemaIfNotExists();
+            _eventStore = eventStore;
+            var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
             db.Database.CreateIfNotExists();
         }
 
@@ -84,6 +84,34 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
         }
 
         [Test]
+        public async Task It_should_rollback_both_entity_and_change_log()
+        {
+            // Given
+            var id = Guid.NewGuid();
+            var user = new UserAggregate(id, "Bond");
+            var changeLog = user.GetUncommittedChanges().ToList();
+            await InsertUser(user);
+            user = await LoadUser(user.Id);
+
+            // When
+            using (var tran = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted))
+            {
+                user.Rename("James Bond");
+                await UpdateUser(user);
+            }
+
+            // Then
+            var savedUser = await LoadUser(user.Id);
+            var savedChangeLog = await LoadChangeLog(user.StreamId);
+            savedUser.Should().BeEquivalentTo(new UserAggregate(id, "Bond"));
+            for (var i = 0; i < savedChangeLog.Count; i++)
+            {
+                savedChangeLog[i].Should().BeEquivalentTo((object) changeLog[i]);
+                savedChangeLog[i].Should().BeOfType(changeLog[i].GetType());
+            }
+        }
+
+        [Test]
         public async Task Long_transaction_should_not_block_short_transactions()
         {
             // Warm-up
@@ -122,7 +150,7 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
         {
             // Given
             var events = new List<IDomainEvent>();
-            _streamStore.SubscribeToAll(null, ReceiveEvent);
+            _eventStore.SubscribeToAll(null, ReceiveEvent);
             await Task.Delay(1000);
 
             async Task ReceiveEvent(IAllStreamSubscription _, StreamMessage message, CancellationToken __)
@@ -162,21 +190,21 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
 
         private async Task InsertUser(UserAggregate user)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _streamStore);
+            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
             db.Users.Add(user);
             await db.SaveChangesAsync();
         }
 
         private async Task UpdateUser(UserAggregate user)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _streamStore);
+            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
             db.Entry(user).State = EntityState.Modified;
             await db.SaveChangesAsync();
         }
 
         private async Task<UserAggregate> LoadUser(Guid id)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _streamStore);
+            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
             return await db.Users.FindAsync(id);
         }
 
@@ -192,7 +220,7 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
         private async Task<List<IDomainEvent>> LoadChangeLog(string streamId)
         {
             var changeLog = new List<IDomainEvent>();
-            var page = await _streamStore.ReadStreamForwards(streamId, 0, int.MaxValue);
+            var page = await _eventStore.ReadStreamForwards(streamId, 0, int.MaxValue);
             foreach (var message in page.Messages)
             {
                 var json = await message.GetJsonData();
@@ -206,7 +234,7 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
         private async Task<List<IDomainEvent>> LoadAllChangeLogs()
         {
             var changeLog = new List<IDomainEvent>();
-            var page = await _streamStore.ReadAllForwards(0, int.MaxValue);
+            var page = await _eventStore.ReadAllForwards(0, int.MaxValue);
             foreach (var message in page.Messages)
             {
                 var json = await message.GetJsonData();

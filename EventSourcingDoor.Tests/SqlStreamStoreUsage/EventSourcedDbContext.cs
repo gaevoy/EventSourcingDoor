@@ -14,12 +14,12 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
 {
     public abstract class EventSourcedDbContext : DbContext
     {
-        private readonly IStreamStore _streamStore;
+        private readonly IStreamStore _eventStore;
 
-        protected EventSourcedDbContext(string connectionString, IStreamStore streamStore)
+        protected EventSourcedDbContext(string connectionString, IStreamStore eventStore)
             : base(connectionString)
         {
-            _streamStore = streamStore;
+            _eventStore = eventStore;
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellation)
@@ -36,7 +36,7 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
                         e.GetType().FullName,
                         JsonConvert.SerializeObject(e)))
                     .ToArray();
-                await _streamStore.AppendToStream(
+                await _eventStore.AppendToStream(
                     changeLog.StreamId,
                     ExpectedVersion.Any,
                     streamMessages, cancellation);

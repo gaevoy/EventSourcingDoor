@@ -12,12 +12,12 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
 {
     public abstract class EventSourcedDbContext : DbContext
     {
-        private readonly IStoreEvents _store;
+        private readonly IStoreEvents _eventStore;
 
-        protected EventSourcedDbContext(string connectionString, IStoreEvents store)
+        protected EventSourcedDbContext(string connectionString, IStoreEvents eventStore)
             : base(connectionString)
         {
-            _store = store;
+            _eventStore = eventStore;
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellation)
@@ -27,7 +27,7 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
             var result = await base.SaveChangesAsync(cancellation);
             foreach (var changeLog in changeLogs)
             {
-                using (var stream = _store.OpenStream(changeLog.StreamId))
+                using (var stream = _eventStore.OpenStream(changeLog.StreamId))
                 {
                     foreach (var change in changeLog.GetUncommittedChanges())
                         stream.Add(new EventMessage {Body = change});
@@ -43,7 +43,23 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
 
         public override int SaveChanges()
         {
-            return AsyncPump.Run(SaveChangesAsync);
+            using var transaction = TransactionExt.Begin(IsolationLevel.ReadCommitted);
+            var changeLogs = GetChangeLogs();
+            var result = base.SaveChanges();
+            foreach (var changeLog in changeLogs)
+            {
+                using (var stream = _eventStore.OpenStream(changeLog.StreamId))
+                {
+                    foreach (var change in changeLog.GetUncommittedChanges())
+                        stream.Add(new EventMessage {Body = change});
+                    stream.CommitChanges(Guid.NewGuid());
+                }
+
+                changeLog.MarkChangesAsCommitted();
+            }
+
+            transaction.Complete();
+            return result;
         }
 
         private IEnumerable<IChangeLog> GetChangeLogs()

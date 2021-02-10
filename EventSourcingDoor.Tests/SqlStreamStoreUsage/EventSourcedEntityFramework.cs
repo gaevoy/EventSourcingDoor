@@ -6,7 +6,7 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
 {
     public class EventSourcedEntityFramework : EventSourcedDbContext
     {
-        public EventSourcedEntityFramework(string connectionString, IStreamStore streamStore) : base(connectionString, streamStore)
+        public EventSourcedEntityFramework(string connectionString, IStreamStore eventStore) : base(connectionString, eventStore)
         {
         }
 

@@ -13,6 +13,7 @@
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="NEventStore" Version="8.0.0" />
         <PackageReference Include="NEventStore.Persistence.Sql" Version="8.0.0" />
+        <PackageReference Include="NEventStore.PollingClient" Version="8.0.0" />
         <PackageReference Include="NEventStore.Serialization.Json" Version="8.0.0" />
         <PackageReference Include="nunit" Version="3.12.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />

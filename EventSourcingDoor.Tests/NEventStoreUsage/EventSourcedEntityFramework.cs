@@ -6,7 +6,7 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
 {
     public class EventSourcedEntityFramework : EventSourcedDbContext
     {
-        public EventSourcedEntityFramework(string connectionString, IStoreEvents store) : base(connectionString, store)
+        public EventSourcedEntityFramework(string connectionString, IStoreEvents eventStore) : base(connectionString, eventStore)
         {
         }
 
