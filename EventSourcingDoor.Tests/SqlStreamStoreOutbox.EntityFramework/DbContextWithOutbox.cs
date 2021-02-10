@@ -10,13 +10,13 @@ using Newtonsoft.Json;
 using SqlStreamStore;
 using SqlStreamStore.Streams;
 
-namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
+namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
 {
-    public abstract class EventSourcedDbContext : DbContext
+    public abstract class DbContextWithOutbox : DbContext
     {
         private readonly IStreamStore _eventStore;
 
-        protected EventSourcedDbContext(string connectionString, IStreamStore eventStore)
+        protected DbContextWithOutbox(string connectionString, IStreamStore eventStore)
             : base(connectionString)
         {
             _eventStore = eventStore;

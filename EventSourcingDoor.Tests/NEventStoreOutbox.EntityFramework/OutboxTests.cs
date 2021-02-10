@@ -14,10 +14,10 @@ using NEventStore.Serialization.Json;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
-namespace EventSourcingDoor.Tests.NEventStoreUsage
+namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
 {
     [Parallelizable(ParallelScope.None)]
-    public class EventSourcedEntityTests
+    public class OutboxTests
     {
         private static Randomizer Random => TestContext.CurrentContext.Random;
         public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
@@ -34,7 +34,7 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
                 .Build();
             eventStore.Advanced.Purge();
             _eventStore = eventStore;
-            var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
+            var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
             db.Database.CreateIfNotExists();
         }
 
@@ -191,21 +191,21 @@ namespace EventSourcingDoor.Tests.NEventStoreUsage
 
         private async Task InsertUser(UserAggregate user)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
+            using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
             db.Users.Add(user);
             await db.SaveChangesAsync();
         }
 
         private async Task UpdateUser(UserAggregate user)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
+            using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
             db.Entry(user).State = EntityState.Modified;
             await db.SaveChangesAsync();
         }
 
         private async Task<UserAggregate> LoadUser(Guid id)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
+            using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
             return await db.Users.FindAsync(id);
         }
 

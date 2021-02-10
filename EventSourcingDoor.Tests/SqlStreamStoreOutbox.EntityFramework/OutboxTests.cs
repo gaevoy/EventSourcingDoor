@@ -14,9 +14,9 @@ using NUnit.Framework.Internal;
 using SqlStreamStore;
 using SqlStreamStore.Streams;
 
-namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
+namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
 {
-    public class EventSourcedEntityTests
+    public class OutboxTests
     {
         private static Randomizer Random => TestContext.CurrentContext.Random;
         public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
@@ -29,7 +29,7 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
             await eventStore.DropAll();
             await eventStore.CreateSchemaIfNotExists();
             _eventStore = eventStore;
-            var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
+            var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
             db.Database.CreateIfNotExists();
         }
 
@@ -190,21 +190,21 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreUsage
 
         private async Task InsertUser(UserAggregate user)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
+            using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
             db.Users.Add(user);
             await db.SaveChangesAsync();
         }
 
         private async Task UpdateUser(UserAggregate user)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
+            using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
             db.Entry(user).State = EntityState.Modified;
             await db.SaveChangesAsync();
         }
 
         private async Task<UserAggregate> LoadUser(Guid id)
         {
-            using var db = new EventSourcedEntityFramework(ConnectionString, _eventStore);
+            using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
             return await db.Users.FindAsync(id);
         }
 

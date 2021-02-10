@@ -8,13 +8,13 @@ using System.Transactions;
 using EventSourcingDoor.Tests.Utils;
 using NEventStore;
 
-namespace EventSourcingDoor.Tests.NEventStoreUsage
+namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
 {
-    public abstract class EventSourcedDbContext : DbContext
+    public abstract class DbContextWithOutbox : DbContext
     {
         private readonly IStoreEvents _eventStore;
 
-        protected EventSourcedDbContext(string connectionString, IStoreEvents eventStore)
+        protected DbContextWithOutbox(string connectionString, IStoreEvents eventStore)
             : base(connectionString)
         {
             _eventStore = eventStore;
