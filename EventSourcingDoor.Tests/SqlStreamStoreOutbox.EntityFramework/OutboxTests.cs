@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,10 +43,13 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
             var changeLog = user.GetUncommittedChanges().ToList();
 
             // When
-            await InsertUser(user);
+            using var db = NewDbContext();
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
 
             // Then
-            var savedUser = await LoadUser(user.Id);
+            db.DetachAll();
+            var savedUser = await db.Users.FindAsync(user.Id);
             var savedChangeLog = await LoadChangeLog(user.StreamId);
             savedUser.Should().BeEquivalentTo(user);
             for (var i = 0; i < savedChangeLog.Count; i++)
@@ -60,16 +64,18 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
         {
             // Given
             var user = new UserAggregate(Guid.NewGuid(), "Bond");
-            await InsertUser(user);
-            user = await LoadUser(user.Id);
+            using var db = NewDbContext();
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
 
             // When
             user.Rename("James Bond");
             var changeLog = user.GetUncommittedChanges().ToList();
-            await UpdateUser(user);
+            await db.SaveChangesAsync();
 
             // Then
-            var savedUser = await LoadUser(user.Id);
+            db.DetachAll();
+            var savedUser = await db.Users.FindAsync(user.Id);
             var savedChangeLog = (await LoadChangeLog(user.StreamId)).AsEnumerable()
                 .Reverse()
                 .Take(changeLog.Count)
@@ -84,15 +90,55 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
         }
 
         [Test]
+        public async Task It_should_throw_concurrency_error_via_EntityFramework()
+        {
+            // Given
+            using var db = NewDbContext();
+            var user = new UserAggregate(Guid.NewGuid(), "Bond");
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
+            using var db1 = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+            using var db2 = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+
+            // When
+            var user1 = await db1.Users.FindAsync(user.Id);
+            user1.Rename("James Bond #1");
+            var user2 = await db2.Users.FindAsync(user.Id);
+            user2.Rename("James Bond #2");
+            var changeLog = user2.Changes.GetUncommittedChanges().ToList();
+            await db2.SaveChangesAsync();
+            Func<Task> act = () => db1.SaveChangesAsync();
+
+            // Then
+            await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+            db1.DetachAll();
+            var savedUser = await db1.Users.FindAsync(user.Id);
+            var savedChangeLog = (await LoadChangeLog(user.StreamId)).AsEnumerable()
+                .Reverse()
+                .Take(changeLog.Count)
+                .Reverse()
+                .ToList();
+            savedUser.Should().BeEquivalentTo(user2);
+            for (var i = 0; i < savedChangeLog.Count; i++)
+            {
+                savedChangeLog[i].Should().BeEquivalentTo((object) changeLog[i]);
+                savedChangeLog[i].Should().BeOfType(changeLog[i].GetType());
+            }
+        }
+
+        [Test]
         public async Task It_should_not_fail_if_there_is_no_changes()
         {
             // Given
             var user = new UserAggregate(Guid.NewGuid(), "Bond");
-            await InsertUser(user);
-            user = await LoadUser(user.Id);
+            using var db = NewDbContext();
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
 
             // When
-            Func<Task> act = () => UpdateUser(user);
+            db.DetachAll();
+            db.Entry(user).State = EntityState.Modified;
+            Func<Task> act = () => db.SaveChangesAsync();
 
             // Then
             act.Should().NotThrow();
@@ -105,18 +151,20 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
             var id = Guid.NewGuid();
             var user = new UserAggregate(id, "Bond");
             var changeLog = user.GetUncommittedChanges().ToList();
-            await InsertUser(user);
-            user = await LoadUser(user.Id);
+            using var db = NewDbContext();
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
 
             // When
             using (var tran = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted))
             {
                 user.Rename("James Bond");
-                await UpdateUser(user);
+                await db.SaveChangesAsync();
             }
 
             // Then
-            var savedUser = await LoadUser(user.Id);
+            db.DetachAll();
+            var savedUser = await db.Users.FindAsync(id);
             var savedChangeLog = await LoadChangeLog(user.StreamId);
             savedUser.Should().BeEquivalentTo(new UserAggregate(id, "Bond"));
             for (var i = 0; i < savedChangeLog.Count; i++)
@@ -203,31 +251,18 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
             }
         }
 
-        private async Task InsertUser(UserAggregate user)
+        private TestDbContextWithOutbox NewDbContext()
         {
-            using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
-            db.Users.Add(user);
-            await db.SaveChangesAsync();
-        }
-
-        private async Task UpdateUser(UserAggregate user)
-        {
-            using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
-            db.Entry(user).State = EntityState.Modified;
-            await db.SaveChangesAsync();
-        }
-
-        private async Task<UserAggregate> LoadUser(Guid id)
-        {
-            using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
-            return await db.Users.FindAsync(id);
+            return new TestDbContextWithOutbox(ConnectionString, _eventStore);
         }
 
         private async Task InsertUserInTransaction(UserAggregate user, Task beforeTransactionDone)
         {
             await Task.Yield();
             using var transaction = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted);
-            await InsertUser(user);
+            using var db = NewDbContext();
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
             await beforeTransactionDone;
             transaction.Complete();
         }
