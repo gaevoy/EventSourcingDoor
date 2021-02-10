@@ -84,6 +84,21 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
         }
 
         [Test]
+        public async Task It_should_not_fail_if_there_is_no_changes()
+        {
+            // Given
+            var user = new UserAggregate(Guid.NewGuid(), "Bond");
+            await InsertUser(user);
+            user = await LoadUser(user.Id);
+
+            // When
+            Func<Task> act = () => UpdateUser(user);
+
+            // Then
+            act.Should().NotThrow();
+        }
+
+        [Test]
         public async Task It_should_rollback_both_entity_and_change_log()
         {
             // Given

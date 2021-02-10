@@ -1,22 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using IEvent = System.Object;
 
 namespace EventSourcingDoor
 {
     public class ChangeLogDefinition<TState> where TState : IHaveStreamId
     {
-        private Action<TState, IEvent> _handle = (state, evt) => throw new HandlerIsNotDefinedException(evt.GetType());
+        private readonly Dictionary<Type, Action<TState, IEvent>> _handle =
+            new Dictionary<Type, Action<TState, object>>();
 
         public ChangeLogDefinition<TState> On<TEvent>(Action<TState, TEvent> handler)
         {
-            var next = _handle;
-            _handle = (state, evt) =>
-            {
-                if (evt is TEvent typedEvt)
-                    handler(state, typedEvt);
-                else
-                    next(state, evt);
-            };
+            _handle[typeof(TEvent)] = (state, evt) => handler(state, (TEvent) evt);
             return this;
         }
         // .UseAllMethodsWithName("When")
@@ -28,6 +23,10 @@ namespace EventSourcingDoor
             => new ChangeLog<TState, TEventBase>(state, this);
 
         public void ApplyChange(TState state, IEvent evt)
-            => _handle(state, evt);
+        {
+            if (!_handle.TryGetValue(evt.GetType(), out var handle))
+                throw new HandlerIsNotDefinedException(evt.GetType());
+            handle(state, evt);
+        }
     }
 }
