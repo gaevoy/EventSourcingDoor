@@ -16,7 +16,6 @@ namespace EventSourcingDoor.Tests.Domain
 
         protected override ChangeLogDefinition<UserAggregate> Definition => CachedDefinition;
 
-
         public UserAggregate()
         {
         }

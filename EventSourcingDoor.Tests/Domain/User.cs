@@ -4,19 +4,17 @@ namespace EventSourcingDoor.Tests.Domain
 {
     public class User : IHaveChangeLog, IHaveVersion, IHaveStreamId
     {
+        public string StreamId => Id.ToString("N");
         public Guid Id { get; private set; }
-        public long Version { get; set; }
         public string Name { get; private set; }
+        public long Version { get; set; }
+        public IChangeLog Changes => _changes;
+        private readonly ChangeLog<User, IDomainEvent> _changes;
 
         private static readonly ChangeLogDefinition<User> Definition = ChangeLog
             .For<User>()
             .On<UserRegistered>((self, evt) => self.When(evt))
             .On<UserNameChanged>((self, evt) => self.When(evt));
-
-        public string StreamId => Id.ToString("N");
-        public IChangeLog Changes => _changes;
-        private readonly ChangeLog<User, IDomainEvent> _changes;
-
 
         public User()
         {
