@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using EventSourcingDoor.Tests.Domain;
 using NUnit.Framework;
@@ -76,6 +77,32 @@ namespace EventSourcingDoor.Tests
             Assert.That(user.Id, Is.EqualTo(id));
             Assert.That(user.Name, Is.EqualTo(changedName));
             Assert.That(user.Version, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void It_should_fail_when_there_is_unknown_event()
+        {
+            // Given
+            var id = Random.NextGuid();
+            var name = Random.GetString();
+            var history = new IDomainEvent[]
+            {
+                new UserRegistered {Id = id, Name = name},
+                new Unknown()
+            };
+
+            // When
+            var user = new User();
+            Action act = () => user.Changes.LoadFromHistory(history);
+
+            // Then
+            Assert.That(act, Throws.Exception.TypeOf<HandlerIsNotDefinedException>());
+        }
+
+
+        public class Unknown : IDomainEvent
+        {
+            public long Version { get; set; }
         }
     }
 }

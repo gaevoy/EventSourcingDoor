@@ -5,7 +5,7 @@ namespace EventSourcingDoor
 {
     public class ChangeLogDefinition<TState> where TState : IHaveStreamId
     {
-        private Action<TState, IEvent> _handle = (state, evt) => { };
+        private Action<TState, IEvent> _handle = (state, evt) => throw new HandlerIsNotDefinedException(evt.GetType());
 
         public ChangeLogDefinition<TState> On<TEvent>(Action<TState, TEvent> handler)
         {
