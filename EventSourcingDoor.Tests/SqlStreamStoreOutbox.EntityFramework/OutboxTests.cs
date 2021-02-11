@@ -213,7 +213,9 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
         {
             // Given
             var events = new List<IDomainEvent>();
-            _eventStore.SubscribeToAll(null, ReceiveEvent);
+            // `guaranteedDelay` should include transaction timeout + clock drift. Otherwise, `PollingClient2` may skip commits.
+            var guaranteedDelay = TimeSpan.FromMilliseconds(3000);
+            new OutboxAwareStreamStore(_eventStore, guaranteedDelay).SubscribeToAll(null, ReceiveEvent);
             await Task.Delay(1000);
 
             async Task ReceiveEvent(IAllStreamSubscription _, StreamMessage message, CancellationToken __)

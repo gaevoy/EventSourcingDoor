@@ -112,7 +112,7 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
             user2.Rename("James Bond #2");
             var changeLog = user2.Changes.GetUncommittedChanges().ToList();
             await db2.SaveChangesAsync();
-            Func<Task> act = ()=> db1.SaveChangesAsync();
+            Func<Task> act = () => db1.SaveChangesAsync();
 
             // Then
             await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
@@ -218,8 +218,13 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
         {
             // Given
             var events = new List<IDomainEvent>();
+            // `guaranteedDelay` should include transaction timeout + clock drift. Otherwise, `PollingClient2` may skip commits.
+            var guaranteedDelay = TimeSpan.FromMilliseconds(3000);
             var pollingClient = new PollingClient2(_eventStore.Advanced, commit =>
             {
+                var visibilityDate = DateTime.UtcNow - guaranteedDelay;
+                if (commit.CommitStamp > visibilityDate)
+                    return PollingClient2.HandlingResult.Retry; // Wait more for the guaranteed delay
                 lock (events)
                     events.AddRange(commit.Events.Select(e => e.Body).OfType<IDomainEvent>());
                 return PollingClient2.HandlingResult.MoveToNext;
