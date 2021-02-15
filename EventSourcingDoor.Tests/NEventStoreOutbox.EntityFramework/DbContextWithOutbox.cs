@@ -62,7 +62,7 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
             return result;
         }
 
-        private IEnumerable<IChangeLog> GetChangeLogs()
+        private List<IChangeLog> GetChangeLogs()
         {
             return ChangeTracker
                 .Entries()
@@ -70,7 +70,8 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
                 .Where(entity => entity is IChangeLog || entity is IHaveChangeLog)
                 .Select(entity => entity is IHaveChangeLog container
                     ? container.Changes
-                    : (IChangeLog) entity);
+                    : (IChangeLog) entity)
+                .ToList();
         }
     }
 }

@@ -43,6 +43,29 @@ namespace EventSourcingDoor.Tests
             Console.WriteLine(stopwatch.ElapsedMilliseconds);
         }
 
+        [Test, Repeat(10)]
+        public void It_should_create_user_entity()
+        {
+            // Given
+            var count = 1_000_000;
+
+            // When
+            var stopwatch = Stopwatch.StartNew();
+            for (var i = 0; i < count; i++)
+            {
+                var user = new User(Guid.Empty, "User");
+                user.Rename("2");
+                user.Rename("3");
+                user.Rename("4");
+                user.Rename("5");
+            }
+
+            stopwatch.Stop();
+
+            // Then
+            Console.WriteLine(stopwatch.ElapsedMilliseconds);
+        }
+
         [Test, Repeat(5)]
         public void It_should_reply_history_when_there_is_20_different_event_types()
         {

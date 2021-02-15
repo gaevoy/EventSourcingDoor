@@ -8,11 +8,13 @@ namespace EventSourcingDoor.Tests.Domain
         public Guid Id { get; private set; }
         public string Name { get; private set; }
         public long Version { get; set; }
+        public DateTime? DeletedAt { get; set; }
 
         private static readonly ChangeLogDefinition<UserAggregate> CachedDefinition = ChangeLog
             .For<UserAggregate>()
             .On<UserRegistered>((self, evt) => self.When(evt))
-            .On<UserNameChanged>((self, evt) => self.When(evt));
+            .On<UserNameChanged>((self, evt) => self.When(evt))
+            .On<UserDeleted>((self, evt) => self.When(evt));
 
         protected override ChangeLogDefinition<UserAggregate> Definition => CachedDefinition;
 
@@ -39,6 +41,16 @@ namespace EventSourcingDoor.Tests.Domain
         private void When(UserNameChanged evt)
         {
             Name = evt.Name;
+        }
+
+        public void Delete()
+        {
+            ApplyChange(new UserDeleted {Id = Id, At = DateTime.UtcNow});
+        }
+
+        private void When(UserDeleted evt)
+        {
+            DeletedAt = evt.At;
         }
     }
 }

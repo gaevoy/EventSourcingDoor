@@ -15,6 +15,8 @@ using NEventStore.Serialization.Json;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
+#pragma warning disable 1998
+
 namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
 {
     [Parallelizable(ParallelScope.None)]
@@ -87,6 +89,37 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
                 .Reverse()
                 .ToList();
             savedUser.Should().BeEquivalentTo(user);
+            for (var i = 0; i < savedChangeLog.Count; i++)
+            {
+                savedChangeLog[i].Should().BeEquivalentTo((object) changeLog[i]);
+                savedChangeLog[i].Should().BeOfType(changeLog[i].GetType());
+            }
+        }
+
+        [Test]
+        public async Task It_should_delete_entity_and_record_change_log()
+        {
+            // Given
+            var user = new UserAggregate(Guid.NewGuid(), "Bond");
+            using var db = NewDbContext();
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
+
+            // When
+            user.Delete();
+            var changeLog = user.GetUncommittedChanges().ToList();
+            db.Users.Remove(user);
+            await db.SaveChangesAsync();
+
+            // Then
+            db.DetachAll();
+            var savedUser = await db.Users.FindAsync(user.Id);
+            var savedChangeLog = (await LoadChangeLog(user.StreamId)).AsEnumerable()
+                .Reverse()
+                .Take(changeLog.Count)
+                .Reverse()
+                .ToList();
+            savedUser.Should().BeNull();
             for (var i = 0; i < savedChangeLog.Count; i++)
             {
                 savedChangeLog[i].Should().BeEquivalentTo((object) changeLog[i]);
