@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace EventSourcingDoor.Tests
 {
-    [Parallelizable(ParallelScope.None)]
+    [Parallelizable(ParallelScope.None), Explicit]
     public class ChangeLogPerformanceTests
     {
         [SetUp]

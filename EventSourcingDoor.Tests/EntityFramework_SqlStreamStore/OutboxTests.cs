@@ -14,6 +14,7 @@ using SqlStreamStore.Streams;
 
 namespace EventSourcingDoor.Tests.EntityFramework_SqlStreamStore
 {
+    [Parallelizable(ParallelScope.None)]
     public class OutboxTests : OutboxTestsBase
     {
         private static Randomizer Random => TestContext.CurrentContext.Random;
