@@ -5,17 +5,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EventSourcingDoor.Tests.Domain;
+using EventSourcingDoor.Tests.Outboxes;
 using EventSourcingDoor.Tests.Utils;
 using NUnit.Framework;
 using SqlStreamStore;
 
-namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
+namespace EventSourcingDoor.Tests.EntityFramework_SqlStreamStore
 {
     [Parallelizable(ParallelScope.None)]
     public class PerformanceTests
     {
         public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
-        private IStreamStore _eventStore;
+        private IOutbox _outbox;
         private readonly SemaphoreSlim _throttler = new SemaphoreSlim( /*degreeOfParallelism:*/ 10);
 
         [SetUp]
@@ -23,8 +24,8 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
         {
             var eventStore = new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings(ConnectionString));
             await eventStore.CreateSchemaIfNotExists();
-            _eventStore = eventStore;
-            var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+            _outbox = new SqlStreamStoreOutbox(eventStore);
+            var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
             db.Database.CreateIfNotExists();
             await WarmUpEntityFrameworkWithOutbox();
             await WarmUpUsualEntityFramework();
@@ -34,7 +35,7 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
             {
                 for (int i = 0; i < 1_000; i++)
                 {
-                    using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+                    using var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
                     db.Users.Add(new UserAggregate(Guid.NewGuid(), Guid.NewGuid().ToString()));
                     await db.SaveChangesAsync();
                 }
@@ -68,7 +69,7 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
                 var id = Guid.NewGuid();
                 var name = id.ToString();
                 var localTiming = Stopwatch.StartNew();
-                using (var db = new TestDbContextWithOutbox(ConnectionString, _eventStore))
+                using (var db = new TestDbContextWithOutbox(ConnectionString, _outbox))
                 {
                     db.Users.Add(new UserAggregate(id, name));
                     await db.SaveChangesAsync();

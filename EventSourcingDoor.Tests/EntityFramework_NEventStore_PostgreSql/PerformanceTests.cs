@@ -5,31 +5,32 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EventSourcingDoor.Tests.Domain;
+using EventSourcingDoor.Tests.Outboxes;
 using EventSourcingDoor.Tests.Utils;
 using NEventStore;
 using NEventStore.Persistence.Sql.SqlDialects;
 using NEventStore.Serialization.Json;
 using NUnit.Framework;
 
-namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework.PostgreSql
+namespace EventSourcingDoor.Tests.EntityFramework_NEventStore_PostgreSql
 {
     [Parallelizable(ParallelScope.None)]
     public class PerformanceTests
     {
         public string ConnectionString => "EventSourcingDoorConnectionString";
-        private IStoreEvents _eventStore;
+        private IOutbox _outbox;
         private readonly SemaphoreSlim _throttler = new SemaphoreSlim( /*degreeOfParallelism:*/ 10);
 
         [SetUp]
         public async Task InitializeAndWarmUp()
         {
-            _eventStore = Wireup.Init()
+            _outbox = new NEventStoreOutbox(Wireup.Init()
                 .UsingSqlPersistence(ConnectionString)
                 .WithDialect(new PostgreSqlDialect())
                 .InitializeStorageEngine()
                 .UsingJsonSerialization()
-                .Build();
-            var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+                .Build());
+            var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
             db.Database.CreateIfNotExists();
             await WarmUpEntityFrameworkWithOutbox();
             await WarmUpUsualEntityFramework();
@@ -39,7 +40,7 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework.PostgreSql
             {
                 for (int i = 0; i < 1_000; i++)
                 {
-                    using var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+                    using var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
                     db.Users.Add(new UserAggregate(Guid.NewGuid(), Guid.NewGuid().ToString()));
                     await db.SaveChangesAsync();
                 }
@@ -73,7 +74,7 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework.PostgreSql
                 var id = Guid.NewGuid();
                 var name = id.ToString();
                 var localTiming = Stopwatch.StartNew();
-                using (var db = new TestDbContextWithOutbox(ConnectionString, _eventStore))
+                using (var db = new TestDbContextWithOutbox(ConnectionString, _outbox))
                 {
                     db.Users.Add(new UserAggregate(id, name));
                     await db.SaveChangesAsync();
@@ -102,7 +103,7 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework.PostgreSql
                 var id = Guid.NewGuid();
                 var name = id.ToString();
                 var localTiming = Stopwatch.StartNew();
-                using (var db = new TestDbContextWithOutbox(ConnectionString, _eventStore))
+                using (var db = new TestDbContextWithOutbox(ConnectionString, _outbox))
                 {
                     db.Users.Add(new UserAggregate(id, name));
                     db.SaveChanges();

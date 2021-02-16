@@ -1,13 +1,11 @@
 using System.Data.Entity;
 using EventSourcingDoor.Tests.Domain;
-using NEventStore;
 
-namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
+namespace EventSourcingDoor.Tests.EntityFramework_NEventStore_PostgreSql
 {
-    public class TestDbContextWithOutbox : DbContextWithOutbox
+    public class TestDbContext : DbContext
     {
-        public TestDbContextWithOutbox(string connectionString, IStoreEvents eventStore)
-            : base(connectionString, eventStore)
+        public TestDbContext(string connectionString) : base(connectionString)
         {
         }
 
@@ -16,6 +14,7 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
             modelBuilder.Entity<UserAggregate>()
                 .Property(e => e.Version)
                 .IsConcurrencyToken();
+            modelBuilder.Types().Configure(c => c.ToTable(c.ClrType.Name, "public"));
         }
 
         public DbSet<UserAggregate> Users { get; set; }

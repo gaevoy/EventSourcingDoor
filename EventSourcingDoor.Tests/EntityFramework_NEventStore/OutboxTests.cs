@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 using EventSourcingDoor.Tests.Domain;
+using EventSourcingDoor.Tests.Outboxes;
 using EventSourcingDoor.Tests.Utils;
 using FluentAssertions;
 using NEventStore;
@@ -17,13 +18,14 @@ using NUnit.Framework.Internal;
 
 #pragma warning disable 1998
 
-namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
+namespace EventSourcingDoor.Tests.EntityFramework_NEventStore
 {
     [Parallelizable(ParallelScope.None)]
     public class OutboxTests
     {
         private static Randomizer Random => TestContext.CurrentContext.Random;
         public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
+        private IOutbox _outbox;
         private IStoreEvents _eventStore;
 
         [SetUp]
@@ -37,7 +39,8 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
                 .Build();
             eventStore.Advanced.Purge();
             _eventStore = eventStore;
-            var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+            _outbox = new NEventStoreOutbox(eventStore);
+            var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
             db.Database.CreateIfNotExists();
         }
 
@@ -135,8 +138,8 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
             var user = new UserAggregate(Guid.NewGuid(), "Bond");
             db.Users.Add(user);
             await db.SaveChangesAsync();
-            using var db1 = new TestDbContextWithOutbox(ConnectionString, _eventStore);
-            using var db2 = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+            using var db1 = new TestDbContextWithOutbox(ConnectionString, _outbox);
+            using var db2 = new TestDbContextWithOutbox(ConnectionString, _outbox);
 
             // When
             var user1 = await db1.Users.FindAsync(user.Id);
@@ -292,7 +295,7 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework
 
         private TestDbContextWithOutbox NewDbContext()
         {
-            return new TestDbContextWithOutbox(ConnectionString, _eventStore);
+            return new TestDbContextWithOutbox(ConnectionString, _outbox);
         }
 
         private async Task InsertUserInTransaction(UserAggregate user, Task beforeTransactionDone)

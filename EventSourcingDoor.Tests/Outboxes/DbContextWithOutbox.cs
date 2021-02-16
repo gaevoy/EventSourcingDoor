@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -6,20 +5,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using EventSourcingDoor.Tests.Utils;
-using Newtonsoft.Json;
-using SqlStreamStore;
-using SqlStreamStore.Streams;
 
-namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
+namespace EventSourcingDoor.Tests.Outboxes
 {
     public abstract class DbContextWithOutbox : DbContext
     {
-        private readonly IStreamStore _eventStore;
+        private readonly IOutbox _outbox;
 
-        protected DbContextWithOutbox(string connectionString, IStreamStore eventStore)
+        protected DbContextWithOutbox(string connectionString, IOutbox outbox)
             : base(connectionString)
         {
-            _eventStore = eventStore;
+            _outbox = outbox;
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellation)
@@ -27,29 +23,19 @@ namespace EventSourcingDoor.Tests.SqlStreamStoreOutbox.EntityFramework
             using var transaction = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted);
             var changeLogs = GetChangeLogs();
             var result = await base.SaveChangesAsync(cancellation);
-            foreach (var changeLog in changeLogs)
-            {
-                var streamMessages = changeLog
-                    .GetUncommittedChanges()
-                    .Select(e => new NewStreamMessage(
-                        Guid.NewGuid(),
-                        e.GetType().FullName,
-                        JsonConvert.SerializeObject(e)))
-                    .ToArray();
-                await _eventStore.AppendToStream(
-                    changeLog.StreamId,
-                    ExpectedVersion.Any,
-                    streamMessages, cancellation);
-                changeLog.MarkChangesAsCommitted();
-            }
-
+            await _outbox.SaveChangesAsync(changeLogs, cancellation);
             transaction.Complete();
             return result;
         }
 
         public override int SaveChanges()
         {
-            return AsyncPump.Run(SaveChangesAsync);
+            using var transaction = TransactionExt.Begin(IsolationLevel.ReadCommitted);
+            var changeLogs = GetChangeLogs();
+            var result = base.SaveChanges();
+            _outbox.SaveChanges(changeLogs);
+            transaction.Complete();
+            return result;
         }
 
         private List<IChangeLog> GetChangeLogs()

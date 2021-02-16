@@ -3,49 +3,38 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using EventSourcingDoor.Tests.Domain;
+using EventSourcingDoor.Tests.Outboxes;
 using EventSourcingDoor.Tests.Utils;
 using FluentAssertions;
-using NEventStore;
-using NEventStore.Persistence.Sql.SqlDialects;
-using NEventStore.PollingClient;
-using NEventStore.Serialization.Json;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using SqlStreamStore;
+using SqlStreamStore.Streams;
 
-#pragma warning disable 1998
-
-namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework.PostgreSql
+namespace EventSourcingDoor.Tests.EntityFramework_SqlStreamStore
 {
-    [Parallelizable(ParallelScope.None)]
     public class OutboxTests
     {
         private static Randomizer Random => TestContext.CurrentContext.Random;
-        public string ConnectionString => "EventSourcingDoorConnectionString";
-        private IStoreEvents _eventStore;
+        public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
+        private IOutbox _outbox;
+        private IStreamStore _eventStore;
 
         [SetUp]
         public async Task EnsureSchemaInitialized()
         {
-            var eventStore = Wireup.Init()
-                .UsingSqlPersistence(ConnectionString)
-                .WithDialect(new PostgreSqlDialect())
-                .InitializeStorageEngine()
-                .UsingJsonSerialization()
-                .Build();
-            eventStore.Advanced.Purge();
+            var eventStore = new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings(ConnectionString));
+            await eventStore.DropAll();
+            await eventStore.CreateSchemaIfNotExists();
             _eventStore = eventStore;
-            var db = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+            _outbox = new SqlStreamStoreOutbox(eventStore);
+            var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
             db.Database.CreateIfNotExists();
-            // Warm-up
-            for (int i = 0; i < 2; i++)
-            {
-                using var warmUpDb = NewDbContext();
-                warmUpDb.Users.Add(new UserAggregate(Guid.NewGuid(), ""));
-                await warmUpDb.SaveChangesAsync();
-            }
         }
 
         [Test]
@@ -142,8 +131,8 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework.PostgreSql
             var user = new UserAggregate(Guid.NewGuid(), "Bond");
             db.Users.Add(user);
             await db.SaveChangesAsync();
-            using var db1 = new TestDbContextWithOutbox(ConnectionString, _eventStore);
-            using var db2 = new TestDbContextWithOutbox(ConnectionString, _eventStore);
+            using var db1 = new TestDbContextWithOutbox(ConnectionString, _outbox);
+            using var db2 = new TestDbContextWithOutbox(ConnectionString, _outbox);
 
             // When
             var user1 = await db1.Users.FindAsync(user.Id);
@@ -260,17 +249,18 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework.PostgreSql
             var events = new List<IDomainEvent>();
             // `guaranteedDelay` should include transaction timeout + clock drift. Otherwise, `PollingClient2` may skip commits.
             var guaranteedDelay = TimeSpan.FromMilliseconds(3000);
-            var pollingClient = new PollingClient2(_eventStore.Advanced, commit =>
-            {
-                var visibilityDate = DateTime.UtcNow - guaranteedDelay;
-                if (commit.CommitStamp > visibilityDate)
-                    return PollingClient2.HandlingResult.Retry; // Wait more for the guaranteed delay
-                lock (events)
-                    events.AddRange(commit.Events.Select(e => e.Body).OfType<IDomainEvent>());
-                return PollingClient2.HandlingResult.MoveToNext;
-            });
-            pollingClient.StartFrom();
+            new OutboxAwareStreamStore(_eventStore, guaranteedDelay).SubscribeToAll(null, ReceiveEvent);
             await Task.Delay(1000);
+
+            async Task ReceiveEvent(IAllStreamSubscription _, StreamMessage message, CancellationToken __)
+            {
+                var data = await message.GetJsonData();
+                Console.WriteLine(message.Position + ": " + data);
+                var evt = (IDomainEvent) JsonConvert.DeserializeObject(data, Type.GetType(message.Type));
+                lock (events)
+                    events.Add(evt);
+            }
+
 
             var user1 = new UserAggregate(Random.NextGuid(), "User#1");
             var user2 = new UserAggregate(Random.NextGuid(), "User#2");
@@ -299,7 +289,7 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework.PostgreSql
 
         private TestDbContextWithOutbox NewDbContext()
         {
-            return new TestDbContextWithOutbox(ConnectionString, _eventStore);
+            return new TestDbContextWithOutbox(ConnectionString, _outbox);
         }
 
         private async Task InsertUserInTransaction(UserAggregate user, Task beforeTransactionDone)
@@ -315,20 +305,30 @@ namespace EventSourcingDoor.Tests.NEventStoreOutbox.EntityFramework.PostgreSql
 
         private async Task<List<IDomainEvent>> LoadChangeLog(string streamId)
         {
-            return _eventStore.Advanced.GetFrom(Bucket.Default, streamId, 0, int.MaxValue)
-                .SelectMany(e => e.Events)
-                .Select(e => e.Body)
-                .OfType<IDomainEvent>()
-                .ToList();
+            var changeLog = new List<IDomainEvent>();
+            var page = await _eventStore.ReadStreamForwards(streamId, 0, int.MaxValue);
+            foreach (var message in page.Messages)
+            {
+                var json = await message.GetJsonData();
+                var evt = (IDomainEvent) JsonConvert.DeserializeObject(json, Type.GetType(message.Type));
+                changeLog.Add(evt);
+            }
+
+            return changeLog;
         }
 
         private async Task<List<IDomainEvent>> LoadAllChangeLogs()
         {
-            return _eventStore.Advanced.GetFrom(0)
-                .SelectMany(e => e.Events)
-                .Select(e => e.Body)
-                .OfType<IDomainEvent>()
-                .ToList();
+            var changeLog = new List<IDomainEvent>();
+            var page = await _eventStore.ReadAllForwards(0, int.MaxValue);
+            foreach (var message in page.Messages)
+            {
+                var json = await message.GetJsonData();
+                var evt = (IDomainEvent) JsonConvert.DeserializeObject(json, Type.GetType(message.Type));
+                changeLog.Add(evt);
+            }
+
+            return changeLog;
         }
     }
 }
