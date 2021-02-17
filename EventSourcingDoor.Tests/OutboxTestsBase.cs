@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using EventSourcingDoor.Tests.Domain;
@@ -18,6 +19,7 @@ namespace EventSourcingDoor.Tests
     public abstract class OutboxTestsBase
     {
         private static Randomizer Random => TestContext.CurrentContext.Random;
+        protected IOutbox Outbox;
 
         [Test]
         public async Task It_should_insert_entity_and_record_change_log()
@@ -161,7 +163,7 @@ namespace EventSourcingDoor.Tests
         }
 
         [Test]
-        public async Task It_should_rollback_both_entity_and_change_log()
+        public async Task It_should_rollback_both_entity_and_change_log_within_async_flow()
         {
             // Given
             var id = Guid.NewGuid();
@@ -176,6 +178,36 @@ namespace EventSourcingDoor.Tests
             {
                 user.Rename("James Bond");
                 await db.SaveChangesAsync();
+            }
+
+            // Then
+            db.DetachAll();
+            var savedUser = await db.Users.FindAsync(id);
+            var savedChangeLog = await LoadChangeLog(user.StreamId);
+            savedUser.Should().BeEquivalentTo(new UserAggregate(id, "Bond"));
+            for (var i = 0; i < savedChangeLog.Count; i++)
+            {
+                savedChangeLog[i].Should().BeEquivalentTo((object) changeLog[i]);
+                savedChangeLog[i].Should().BeOfType(changeLog[i].GetType());
+            }
+        }
+
+        [Test]
+        public async Task It_should_rollback_both_entity_and_change_log_within_sync_flow()
+        {
+            // Given
+            var id = Guid.NewGuid();
+            var user = new UserAggregate(id, "Bond");
+            var changeLog = user.GetUncommittedChanges().ToList();
+            using var db = NewDbContext();
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
+
+            // When
+            using (var tran = TransactionExt.Begin(IsolationLevel.ReadCommitted))
+            {
+                user.Rename("James Bond");
+                db.SaveChanges();
             }
 
             // Then
@@ -233,6 +265,44 @@ namespace EventSourcingDoor.Tests
             await db.SaveChangesAsync();
             await beforeTransactionDone;
             transaction.Complete();
+        }
+
+        [Test]
+        public async Task It_should_not_drop_events_during_reception()
+        {
+            // Given
+            var events = new List<IDomainEvent>();
+
+            var _ = Outbox.Receive(evt =>
+            {
+                lock (events)
+                    events.Add((IDomainEvent) evt);
+            }, CancellationToken.None);
+            await Task.Delay(1000);
+
+            var user1 = new UserAggregate(Random.NextGuid(), "User#1");
+            var user2 = new UserAggregate(Random.NextGuid(), "User#2");
+            var longTransaction = new TaskCompletionSource<object>();
+
+            // Warm-up
+            await InsertUserInTransaction(new UserAggregate(Random.NextGuid(), Random.GetString()), Task.CompletedTask);
+
+            // When
+            var longTask = InsertUserInTransaction(user1, longTransaction.Task);
+            await Task.Delay(1000);
+            var shortTask = InsertUserInTransaction(user2, Task.CompletedTask);
+            await Task.Delay(1000);
+            await shortTask;
+            longTransaction.SetResult(null);
+            await longTask;
+
+            // Then
+            await Task.Delay(5000);
+            lock (events)
+            {
+                events.OfType<UserRegistered>().Should().Contain(e => e.Id == user1.Id);
+                events.OfType<UserRegistered>().Should().Contain(e => e.Id == user2.Id);
+            }
         }
 
         protected abstract TestDbContextWithOutbox NewDbContext();

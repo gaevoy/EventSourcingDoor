@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using EventSourcingDoor.Tests.Domain;
 using EventSourcingDoor.Tests.Outboxes;
@@ -22,7 +23,7 @@ namespace EventSourcingDoor.Tests.EntityFramework_NEventStore
                 .WithDialect(new MsSqlDialect())
                 .InitializeStorageEngine()
                 .UsingJsonSerialization()
-                .Build());
+                .Build(), TimeSpan.Zero);
             var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
             db.Database.CreateIfNotExists();
             await WarmUp();

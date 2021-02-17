@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using EventSourcingDoor.Tests.Domain;
 using EventSourcingDoor.Tests.Outboxes;
@@ -17,7 +18,7 @@ namespace EventSourcingDoor.Tests.EntityFramework_SqlStreamStore
         {
             var eventStore = new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings(ConnectionString));
             await eventStore.CreateSchemaIfNotExists();
-            _outbox = new SqlStreamStoreOutbox(eventStore);
+            _outbox = new SqlStreamStoreOutbox(eventStore, TimeSpan.Zero);
             var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
             db.Database.CreateIfNotExists();
             await WarmUp();

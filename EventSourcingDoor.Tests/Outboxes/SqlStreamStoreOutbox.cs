@@ -13,18 +13,20 @@ namespace EventSourcingDoor.Tests.Outboxes
     public class SqlStreamStoreOutbox : IOutbox
     {
         private readonly IStreamStore _eventStore;
+        private readonly TimeSpan _receptionDelay;
 
-        public SqlStreamStoreOutbox(IStreamStore eventStore)
+        public SqlStreamStoreOutbox(IStreamStore eventStore, TimeSpan receptionDelay)
         {
             _eventStore = eventStore;
+            _receptionDelay = receptionDelay;
         }
 
-        public void SaveChanges(IEnumerable<IChangeLog> changes)
+        public void Send(IEnumerable<IChangeLog> changes)
         {
-            AsyncPump.Run(() => SaveChangesAsync(changes, CancellationToken.None));
+            AsyncPump.Run(() => SendAsync(changes, CancellationToken.None));
         }
 
-        public async Task SaveChangesAsync(IEnumerable<IChangeLog> changes, CancellationToken cancellation)
+        public async Task SendAsync(IEnumerable<IChangeLog> changes, CancellationToken cancellation)
         {
             foreach (var changeLog in changes)
             {
@@ -40,6 +42,23 @@ namespace EventSourcingDoor.Tests.Outboxes
                     ExpectedVersion.Any,
                     streamMessages, cancellation);
                 changeLog.MarkChangesAsCommitted();
+            }
+        }
+
+        public async Task Receive(Action<object> onReceived, CancellationToken cancellation)
+        {
+            // TODO: Make use of `message.Position`
+            var cancelling = new TaskCompletionSource<object>();
+            cancellation.Register(() => cancelling.SetResult(null));
+            var streamStore = new OutboxAwareStreamStore(_eventStore, _receptionDelay);
+            using (streamStore.SubscribeToAll(null, ReceiveEvent))
+                await cancelling.Task;
+
+            async Task ReceiveEvent(IAllStreamSubscription _, StreamMessage message, CancellationToken __)
+            {
+                var json = await message.GetJsonData();
+                var evt = JsonConvert.DeserializeObject(json, Type.GetType(message.Type));
+                onReceived(evt);
             }
         }
     }

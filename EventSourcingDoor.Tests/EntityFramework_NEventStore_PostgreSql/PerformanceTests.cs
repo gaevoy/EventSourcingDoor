@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using EventSourcingDoor.Tests.Outboxes;
 using NEventStore;
@@ -21,7 +22,7 @@ namespace EventSourcingDoor.Tests.EntityFramework_NEventStore_PostgreSql
                 .WithDialect(new PostgreSqlDialect())
                 .InitializeStorageEngine()
                 .UsingJsonSerialization()
-                .Build());
+                .Build(), TimeSpan.Zero);
             var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
             db.Database.CreateIfNotExists();
             await WarmUp();

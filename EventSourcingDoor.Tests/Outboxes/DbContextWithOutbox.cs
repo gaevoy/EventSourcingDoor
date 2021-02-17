@@ -23,7 +23,7 @@ namespace EventSourcingDoor.Tests.Outboxes
             using var transaction = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted);
             var changeLogs = GetChangeLogs();
             var result = await base.SaveChangesAsync(cancellation);
-            await _outbox.SaveChangesAsync(changeLogs, cancellation);
+            await _outbox.SendAsync(changeLogs, cancellation);
             transaction.Complete();
             return result;
         }
@@ -33,7 +33,7 @@ namespace EventSourcingDoor.Tests.Outboxes
             using var transaction = TransactionExt.Begin(IsolationLevel.ReadCommitted);
             var changeLogs = GetChangeLogs();
             var result = base.SaveChanges();
-            _outbox.SaveChanges(changeLogs);
+            _outbox.Send(changeLogs);
             transaction.Complete();
             return result;
         }

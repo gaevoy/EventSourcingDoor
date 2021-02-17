@@ -3,19 +3,22 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NEventStore;
+using NEventStore.PollingClient;
 
 namespace EventSourcingDoor.Tests.Outboxes
 {
     public class NEventStoreOutbox : IOutbox
     {
         private readonly IStoreEvents _eventStore;
+        private readonly TimeSpan _receptionDelay;
 
-        public NEventStoreOutbox(IStoreEvents eventStore)
+        public NEventStoreOutbox(IStoreEvents eventStore, TimeSpan receptionDelay)
         {
             _eventStore = eventStore;
+            _receptionDelay = receptionDelay;
         }
 
-        public void SaveChanges(IEnumerable<IChangeLog> changes)
+        public void Send(IEnumerable<IChangeLog> changes)
         {
             foreach (var changeLog in changes)
             {
@@ -30,10 +33,33 @@ namespace EventSourcingDoor.Tests.Outboxes
             }
         }
 
-        public Task SaveChangesAsync(IEnumerable<IChangeLog> changes, CancellationToken cancellation)
+        public Task SendAsync(IEnumerable<IChangeLog> changes, CancellationToken cancellation)
         {
-            SaveChanges(changes);
+            Send(changes);
             return Task.CompletedTask;
+        }
+
+        public async Task Receive(Action<object> onReceived, CancellationToken cancellation)
+        {
+            // TODO: Make use of `commit.CheckpointToken`
+            var cancelling = new TaskCompletionSource<object>();
+            cancellation.Register(() => cancelling.SetResult(null));
+            using (var pollingClient = new PollingClient2(_eventStore.Advanced, OnCommitReceived))
+            {
+                pollingClient.StartFrom();
+                await cancelling.Task;
+            }
+
+            PollingClient2.HandlingResult OnCommitReceived(ICommit commit)
+            {
+                var visibilityDate = DateTime.UtcNow - _receptionDelay;
+                if (commit.CommitStamp > visibilityDate)
+                    return PollingClient2.HandlingResult.Retry; // Wait more for the guaranteed reception delay
+                foreach (var evt in commit.Events)
+                    onReceived(evt.Body);
+
+                return PollingClient2.HandlingResult.MoveToNext;
+            }
         }
     }
 }
