@@ -185,6 +185,7 @@ namespace EventSourcingDoor.Tests
             var savedUser = await db.Users.FindAsync(id);
             var savedChangeLog = await LoadChangeLog(user.StreamId);
             savedUser.Should().BeEquivalentTo(new UserAggregate(id, "Bond"));
+            savedChangeLog.Should().HaveSameCount(changeLog);
             for (var i = 0; i < savedChangeLog.Count; i++)
             {
                 savedChangeLog[i].Should().BeEquivalentTo((object) changeLog[i]);
@@ -215,6 +216,7 @@ namespace EventSourcingDoor.Tests
             var savedUser = await db.Users.FindAsync(id);
             var savedChangeLog = await LoadChangeLog(user.StreamId);
             savedUser.Should().BeEquivalentTo(new UserAggregate(id, "Bond"));
+            savedChangeLog.Should().HaveSameCount(changeLog);
             for (var i = 0; i < savedChangeLog.Count; i++)
             {
                 savedChangeLog[i].Should().BeEquivalentTo((object) changeLog[i]);
