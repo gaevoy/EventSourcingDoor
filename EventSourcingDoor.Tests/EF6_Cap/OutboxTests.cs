@@ -15,6 +15,7 @@ using NUnit.Framework;
 namespace EventSourcingDoor.Tests.EF6_Cap
 {
     [Parallelizable(ParallelScope.None)]
+    [Ignore("Cap is broken due lack of `TransactionScope` support.")]
     public class OutboxTests : OutboxTestsBase
     {
         public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";

@@ -1,56 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
-        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{7992E372-FF92-4296-8258-4D4563417349}</ProjectGuid>
-        <OutputType>Library</OutputType>
-        <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>EventSourcingDoor.EntityFramework6</RootNamespace>
-        <AssemblyName>EventSourcingDoor.EntityFramework6</AssemblyName>
-        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-        <FileAlignment>512</FileAlignment>
+        <TargetFramework>net472</TargetFramework>
+
+        <IsPackable>false</IsPackable>
+
         <LangVersion>8</LangVersion>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
-        <Optimize>false</Optimize>
-        <OutputPath>bin\Debug\</OutputPath>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugType>pdbonly</DebugType>
-        <Optimize>true</Optimize>
-        <OutputPath>bin\Release\</OutputPath>
-        <DefineConstants>TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
+
     <ItemGroup>
-        <Reference Include="System" />
-        <Reference Include="System.ComponentModel.DataAnnotations" />
-        <Reference Include="System.Core" />
-        <Reference Include="System.Data" />
         <Reference Include="System.Transactions" />
     </ItemGroup>
+
     <ItemGroup>
-        <Compile Include="DbContextWithOutbox.cs" />
-        <Compile Include="TransactionExt.cs" />
+        <PackageReference Include="EntityFramework" Version="6.4.4" />
     </ItemGroup>
+
     <ItemGroup>
-      <ProjectReference Include="..\EventSourcingDoor\EventSourcingDoor.csproj">
-        <Project>{1675fdfd-1774-4379-a11d-bb3bfb631e77}</Project>
-        <Name>EventSourcingDoor</Name>
-      </ProjectReference>
+      <ProjectReference Include="..\EventSourcingDoor\EventSourcingDoor.csproj" />
     </ItemGroup>
-    <ItemGroup>
-      <PackageReference Include="EntityFramework" Version="6.4.4" />
-    </ItemGroup>
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>
