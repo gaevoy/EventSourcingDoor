@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.SqlStream
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.EntityFramework6", "EventSourcingDoor.EntityFramework6\EventSourcingDoor.EntityFramework6.csproj", "{7992E372-FF92-4296-8258-4D4563417349}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.EntityFrameworkCore3", "EventSourcingDoor.EntityFrameworkCore3\EventSourcingDoor.EntityFrameworkCore3.csproj", "{15AD31AE-0D51-4252-A0DD-1D60975ACA45}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{7992E372-FF92-4296-8258-4D4563417349}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7992E372-FF92-4296-8258-4D4563417349}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7992E372-FF92-4296-8258-4D4563417349}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15AD31AE-0D51-4252-A0DD-1D60975ACA45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15AD31AE-0D51-4252-A0DD-1D60975ACA45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15AD31AE-0D51-4252-A0DD-1D60975ACA45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15AD31AE-0D51-4252-A0DD-1D60975ACA45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
