@@ -3,7 +3,7 @@ using System.Transactions;
 using static System.Transactions.IsolationLevel;
 using static System.Transactions.TransactionScopeOption;
 
-namespace EventSourcingDoor.EntityFrameworkCore3
+namespace EventSourcingDoor.EntityFrameworkCore
 {
     public static class TransactionExt
     {

@@ -1,9 +1,9 @@
-using System.Data.Entity;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingDoor.Tests.Utils
 {
-    public static class DbContextExt
+    public static class DbContextEfCoreExt
     {
         public static void DetachAll(this DbContext db)
         {

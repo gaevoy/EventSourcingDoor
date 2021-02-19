@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <RootNamespace>EventSourcingDoor.Tests</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\EventSourcingDoor.EntityFrameworkCore\EventSourcingDoor.EntityFrameworkCore.csproj" />
+      <ProjectReference Include="..\EventSourcingDoor.NEventStore\EventSourcingDoor.NEventStore.csproj" />
+      <ProjectReference Include="..\EventSourcingDoor\EventSourcingDoor.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="..\EventSourcingDoor.Tests\Domain\IDomainEvent.cs">
+        <Link>Domain\IDomainEvent.cs</Link>
+      </Compile>
+      <Compile Include="..\EventSourcingDoor.Tests\Domain\UserAggregate.cs">
+        <Link>Domain\UserAggregate.cs</Link>
+      </Compile>
+      <Compile Include="..\EventSourcingDoor.Tests\Domain\UserDeleted.cs">
+        <Link>Domain\UserDeleted.cs</Link>
+      </Compile>
+      <Compile Include="..\EventSourcingDoor.Tests\Domain\UserNameChanged.cs">
+        <Link>Domain\UserNameChanged.cs</Link>
+      </Compile>
+      <Compile Include="..\EventSourcingDoor.Tests\Domain\UserRegistered.cs">
+        <Link>Domain\UserRegistered.cs</Link>
+      </Compile>
+      <Compile Include="..\EventSourcingDoor.Tests\Utils\DbContextEfCoreExt.cs">
+        <Link>Utils\DbContextEfCoreExt.cs</Link>
+      </Compile>
+      <Compile Include="..\EventSourcingDoor.Tests\Utils\ThrottlerExt.cs">
+        <Link>Utils\ThrottlerExt.cs</Link>
+      </Compile>
+      <Compile Include="..\EventSourcingDoor.Tests\Utils\TransactionExt.cs">
+        <Link>Utils\TransactionExt.cs</Link>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentAssertions" Version="5.10.3" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.3" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.3" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+      <PackageReference Include="NEventStore.Persistence.Sql" Version="8.0.0" />
+      <PackageReference Include="NEventStore.Serialization.Json" Version="8.0.0" />
+      <PackageReference Include="NUnit" Version="3.13.1" />
+    </ItemGroup>
+
+</Project>
