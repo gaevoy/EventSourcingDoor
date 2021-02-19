@@ -1,26 +1,25 @@
 using System;
 using System.Threading.Tasks;
 using EventSourcingDoor.NEventStore;
-using EventSourcingDoor.Tests.Domain;
 using NEventStore;
 using NEventStore.Persistence.Sql.SqlDialects;
 using NEventStore.Serialization.Json;
 using NUnit.Framework;
 
-namespace EventSourcingDoor.Tests.EntityFramework_NEventStore
+namespace EventSourcingDoor.Tests.EF6_NEventStore_PostgreSql
 {
     [Parallelizable(ParallelScope.None), Explicit]
     public class PerformanceTests : PerformanceTestsBase
     {
-        public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
+        public string ConnectionString => "EventSourcingDoorConnectionString";
         private IOutbox _outbox;
 
         [SetUp]
         public async Task InitializeAndWarmUp()
         {
             _outbox = new NEventStoreOutbox(Wireup.Init()
-                .UsingSqlPersistence(null, "System.Data.SqlClient", ConnectionString)
-                .WithDialect(new MsSqlDialect())
+                .UsingSqlPersistence(ConnectionString)
+                .WithDialect(new PostgreSqlDialect())
                 .InitializeStorageEngine()
                 .UsingJsonSerialization()
                 .Build(), TimeSpan.Zero);
@@ -29,12 +28,12 @@ namespace EventSourcingDoor.Tests.EntityFramework_NEventStore
             await WarmUp();
         }
 
-        protected override TestDbContextWithOutbox NewDbContextWithOutbox()
+        protected override EventSourcingDoor.Tests.Domain.TestDbContextWithOutbox NewDbContextWithOutbox()
         {
             return new TestDbContextWithOutbox(ConnectionString, _outbox);
         }
 
-        protected override TestDbContext NewDbContext()
+        protected override EventSourcingDoor.Tests.Domain.TestDbContext NewDbContext()
         {
             return new TestDbContext(ConnectionString);
         }

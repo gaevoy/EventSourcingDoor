@@ -14,7 +14,7 @@ namespace EventSourcingDoor.SqlStreamStore
         private readonly IStreamStore _eventStore;
         private readonly TimeSpan _receptionDelay;
 
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        public static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.Objects
         };

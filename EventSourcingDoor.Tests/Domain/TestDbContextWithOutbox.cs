@@ -1,5 +1,5 @@
 using System.Data.Entity;
-using EventSourcingDoor.Tests.Outboxes;
+using EventSourcingDoor.EntityFramework6;
 
 namespace EventSourcingDoor.Tests.Domain
 {

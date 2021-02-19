@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using SqlStreamStore;
 
-namespace EventSourcingDoor.Tests.EntityFramework_SqlStreamStore
+namespace EventSourcingDoor.Tests.EF6_SqlStreamStore
 {
     [Parallelizable(ParallelScope.None)]
     public class OutboxTests : OutboxTestsBase
@@ -41,7 +41,7 @@ namespace EventSourcingDoor.Tests.EntityFramework_SqlStreamStore
             foreach (var message in page.Messages)
             {
                 var json = await message.GetJsonData();
-                var evt = (IDomainEvent) JsonConvert.DeserializeObject(json, Type.GetType(message.Type));
+                var evt = (IDomainEvent) JsonConvert.DeserializeObject(json, SqlStreamStoreOutbox.SerializerSettings);
                 changeLog.Add(evt);
             }
 
@@ -55,7 +55,7 @@ namespace EventSourcingDoor.Tests.EntityFramework_SqlStreamStore
             foreach (var message in page.Messages)
             {
                 var json = await message.GetJsonData();
-                var evt = (IDomainEvent) JsonConvert.DeserializeObject(json, Type.GetType(message.Type));
+                var evt = (IDomainEvent) JsonConvert.DeserializeObject(json, SqlStreamStoreOutbox.SerializerSettings);
                 changeLog.Add(evt);
             }
 

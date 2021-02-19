@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetCore.CAP;
 
-namespace EventSourcingDoor.Tests.Outboxes
+namespace EventSourcingDoor.Tests.Cap
 {
     public class CapOutbox : IOutbox
     {

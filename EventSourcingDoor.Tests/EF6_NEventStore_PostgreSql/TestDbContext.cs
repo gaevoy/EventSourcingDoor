@@ -1,7 +1,7 @@
 using System.Data.Entity;
 using EventSourcingDoor.Tests.Domain;
 
-namespace EventSourcingDoor.Tests.EntityFramework_NEventStore_PostgreSql
+namespace EventSourcingDoor.Tests.EF6_NEventStore_PostgreSql
 {
     public class TestDbContext : EventSourcingDoor.Tests.Domain.TestDbContext
     {

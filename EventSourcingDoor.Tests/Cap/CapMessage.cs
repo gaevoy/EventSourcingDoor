@@ -1,4 +1,4 @@
-namespace EventSourcingDoor.Tests.Outboxes
+namespace EventSourcingDoor.Tests.Cap
 {
     public readonly struct CapMessage
     {

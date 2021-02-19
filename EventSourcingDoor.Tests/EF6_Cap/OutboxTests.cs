@@ -6,13 +6,13 @@ using DotNetCore.CAP;
 using DotNetCore.CAP.Internal;
 using DotNetCore.CAP.Processor;
 using DotNetCore.CAP.Transport;
+using EventSourcingDoor.Tests.Cap;
 using EventSourcingDoor.Tests.Domain;
-using EventSourcingDoor.Tests.Outboxes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
-namespace EventSourcingDoor.Tests.EntityFramework_Cap
+namespace EventSourcingDoor.Tests.EF6_Cap
 {
     [Parallelizable(ParallelScope.None)]
     public class OutboxTests : OutboxTestsBase

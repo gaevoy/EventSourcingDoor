@@ -2,7 +2,7 @@ using DotNetCore.CAP.Internal;
 using DotNetCore.CAP.Persistence;
 using DotNetCore.CAP.Transport;
 
-namespace EventSourcingDoor.Tests.Outboxes
+namespace EventSourcingDoor.Tests.Cap
 {
     public class CapNullDispatcher : IDispatcher
     {

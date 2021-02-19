@@ -11,22 +11,22 @@ using NUnit.Framework;
 
 #pragma warning disable 1998
 
-namespace EventSourcingDoor.Tests.EntityFramework_NEventStore
+namespace EventSourcingDoor.Tests.EF6_NEventStore_PostgreSql
 {
     [Parallelizable(ParallelScope.None)]
     public class OutboxTests : OutboxTestsBase
     {
-        public string ConnectionString => "server=localhost;database=EventSourcingDoor;UID=sa;PWD=sa123";
+        public string ConnectionString => "EventSourcingDoorConnectionString";
         private IStoreEvents _eventStore;
 
         [SetUp]
-        public void EnsureSchemaInitialized()
+        public async Task EnsureSchemaInitialized()
         {
             // `receptionDelay` should include transaction timeout + clock drift. Otherwise, it may skip events during reception.
             var receptionDelay = TimeSpan.FromMilliseconds(3000);
             var eventStore = Wireup.Init()
-                .UsingSqlPersistence(null, "System.Data.SqlClient", ConnectionString)
-                .WithDialect(new MsSqlDialect())
+                .UsingSqlPersistence(ConnectionString)
+                .WithDialect(new PostgreSqlDialect())
                 .InitializeStorageEngine()
                 .UsingJsonSerialization()
                 .Build();
@@ -35,9 +35,16 @@ namespace EventSourcingDoor.Tests.EntityFramework_NEventStore
             Outbox = new NEventStoreOutbox(eventStore, receptionDelay);
             var db = new TestDbContextWithOutbox(ConnectionString, Outbox);
             db.Database.CreateIfNotExists();
+            // Warm-up
+            for (int i = 0; i < 2; i++)
+            {
+                using var warmUpDb = NewDbContext();
+                warmUpDb.Users.Add(new UserAggregate(Guid.NewGuid(), ""));
+                await warmUpDb.SaveChangesAsync();
+            }
         }
 
-        protected override TestDbContextWithOutbox NewDbContext()
+        protected override EventSourcingDoor.Tests.Domain.TestDbContextWithOutbox NewDbContext()
         {
             return new TestDbContextWithOutbox(ConnectionString, Outbox);
         }

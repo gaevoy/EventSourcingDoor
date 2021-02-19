@@ -7,7 +7,7 @@ using DotNetCore.CAP.Messages;
 using DotNetCore.CAP.Transport;
 using Newtonsoft.Json;
 
-namespace EventSourcingDoor.Tests.Outboxes
+namespace EventSourcingDoor.Tests.Cap
 {
     public class CapInMemoryTransport : ITransport
     {

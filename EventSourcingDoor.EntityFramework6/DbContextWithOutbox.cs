@@ -4,9 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
-using EventSourcingDoor.Tests.Utils;
 
-namespace EventSourcingDoor.Tests.Outboxes
+namespace EventSourcingDoor.EntityFramework6
 {
     public abstract class DbContextWithOutbox : DbContext
     {

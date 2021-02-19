@@ -1,11 +1,13 @@
 using System;
 using System.Threading.Tasks;
-using EventSourcingDoor.SqlStreamStore;
+using EventSourcingDoor.NEventStore;
 using EventSourcingDoor.Tests.Domain;
+using NEventStore;
+using NEventStore.Persistence.Sql.SqlDialects;
+using NEventStore.Serialization.Json;
 using NUnit.Framework;
-using SqlStreamStore;
 
-namespace EventSourcingDoor.Tests.EntityFramework_SqlStreamStore
+namespace EventSourcingDoor.Tests.EF6_NEventStore
 {
     [Parallelizable(ParallelScope.None), Explicit]
     public class PerformanceTests : PerformanceTestsBase
@@ -16,9 +18,12 @@ namespace EventSourcingDoor.Tests.EntityFramework_SqlStreamStore
         [SetUp]
         public async Task InitializeAndWarmUp()
         {
-            var eventStore = new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings(ConnectionString));
-            await eventStore.CreateSchemaIfNotExists();
-            _outbox = new SqlStreamStoreOutbox(eventStore, TimeSpan.Zero);
+            _outbox = new NEventStoreOutbox(Wireup.Init()
+                .UsingSqlPersistence(null, "System.Data.SqlClient", ConnectionString)
+                .WithDialect(new MsSqlDialect())
+                .InitializeStorageEngine()
+                .UsingJsonSerialization()
+                .Build(), TimeSpan.Zero);
             var db = new TestDbContextWithOutbox(ConnectionString, _outbox);
             db.Database.CreateIfNotExists();
             await WarmUp();

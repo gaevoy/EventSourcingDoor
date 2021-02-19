@@ -29,6 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\EventSourcingDoor.EntityFramework6\EventSourcingDoor.EntityFramework6.csproj" />
       <ProjectReference Include="..\EventSourcingDoor.NEventStore\EventSourcingDoor.NEventStore.csproj" />
       <ProjectReference Include="..\EventSourcingDoor.SqlStreamStore\EventSourcingDoor.SqlStreamStore.csproj" />
       <ProjectReference Include="..\EventSourcingDoor\EventSourcingDoor.csproj" />
