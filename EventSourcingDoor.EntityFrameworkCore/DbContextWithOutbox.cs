@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Transactions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EventSourcingDoor.EntityFrameworkCore
 {
@@ -20,22 +23,44 @@ namespace EventSourcingDoor.EntityFrameworkCore
             bool acceptAllChanges,
             CancellationToken cancellation = default)
         {
-            using var transaction = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted);
-            var changeLogs = GetChangeLogs();
-            var result = await base.SaveChangesAsync(acceptAllChanges, cancellation);
-            await _outbox.SendAsync(changeLogs, cancellation);
-            transaction.Complete();
-            return result;
+            IDbContextTransaction transaction = null;
+            if (Database.CurrentTransaction == null)
+                transaction = await Database
+                    .BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
+            await using (transaction)
+            {
+                var changeLogs = GetChangeLogs();
+                var result = await base.SaveChangesAsync(acceptAllChanges, cancellation);
+                // AmbientContext.CurrentTransaction = Database.CurrentTransaction?.GetDbTransaction();
+                AmbientContext.CurrentConnection = Database.GetDbConnection();
+                // AmbientContext.CurrentTransaction = Database.CurrentTransaction.GetDbTransaction();
+                _outbox.Send(changeLogs);
+                AmbientContext.CurrentTransaction = null;
+                AmbientContext.CurrentConnection = null;
+                if (transaction != null)
+                    await transaction.CommitAsync(cancellation);
+                return result;
+            }
         }
 
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
-            using var transaction = TransactionExt.Begin(IsolationLevel.ReadCommitted);
-            var changeLogs = GetChangeLogs();
-            var result = base.SaveChanges(acceptAllChangesOnSuccess);
-            _outbox.Send(changeLogs);
-            transaction.Complete();
-            return result;
+            IDbContextTransaction transaction = null;
+            if (Database.CurrentTransaction == null)
+                transaction = Database.BeginTransaction(IsolationLevel.ReadCommitted);
+            using (transaction)
+            {
+                var changeLogs = GetChangeLogs();
+                var result = base.SaveChanges(acceptAllChangesOnSuccess);
+                // AmbientContext.CurrentTransaction = Database.CurrentTransaction?.GetDbTransaction();
+                AmbientContext.CurrentConnection = Database.GetDbConnection();
+                // AmbientContext.CurrentTransaction = Database.CurrentTransaction.GetDbTransaction();
+                _outbox.Send(changeLogs);
+                AmbientContext.CurrentTransaction = null;
+                AmbientContext.CurrentConnection = null;
+                transaction?.Commit();
+                return result;
+            }
         }
 
         private List<IChangeLog> GetChangeLogs()

@@ -174,7 +174,7 @@ namespace EventSourcingDoor.Tests
             await db.SaveChangesAsync();
 
             // When
-            using (var tran = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted))
+            await using (var tran = await db.Database.BeginTransactionAsync())
             {
                 user.Rename("James Bond");
                 await db.SaveChangesAsync();
@@ -205,7 +205,7 @@ namespace EventSourcingDoor.Tests
             await db.SaveChangesAsync();
 
             // When
-            using (var tran = TransactionExt.Begin(IsolationLevel.ReadCommitted))
+            using (var tran = db.Database.BeginTransaction())
             {
                 user.Rename("James Bond");
                 db.SaveChanges();
@@ -261,12 +261,13 @@ namespace EventSourcingDoor.Tests
         protected async Task InsertUserInTransaction(UserAggregate user, Task beforeTransactionDone)
         {
             await Task.Yield();
-            using var transaction = TransactionExt.BeginAsync(IsolationLevel.ReadCommitted);
-            using var db = NewDbContext();
+
+            await using var db = NewDbContext();
+            await using var transaction = await db.Database.BeginTransactionAsync();
             db.Users.Add(user);
             await db.SaveChangesAsync();
             await beforeTransactionDone;
-            transaction.Complete();
+            await transaction.CommitAsync();
         }
 
         [Test]
