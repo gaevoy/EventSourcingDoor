@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using EventSourcingDoor.NEventStore;
 using EventSourcingDoor.Tests.Domain;
-using EventSourcingDoor.Tests.Outboxes;
 using NEventStore;
 using NEventStore.Persistence.Sql.SqlDialects;
 using NEventStore.Serialization.Json;

@@ -7,7 +7,7 @@ using SqlStreamStore.Infrastructure;
 using SqlStreamStore.Streams;
 using SqlStreamStore.Subscriptions;
 
-namespace EventSourcingDoor.Tests.Outboxes
+namespace EventSourcingDoor.SqlStreamStore
 {
     public class OutboxAwareStreamStore : IStreamStore
     {

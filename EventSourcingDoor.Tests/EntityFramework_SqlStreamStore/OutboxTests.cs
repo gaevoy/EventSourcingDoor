@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using EventSourcingDoor.SqlStreamStore;
 using EventSourcingDoor.Tests.Domain;
-using EventSourcingDoor.Tests.Outboxes;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using SqlStreamStore;

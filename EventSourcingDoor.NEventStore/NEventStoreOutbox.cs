@@ -5,13 +5,21 @@ using System.Threading.Tasks;
 using NEventStore;
 using NEventStore.PollingClient;
 
-namespace EventSourcingDoor.Tests.Outboxes
+namespace EventSourcingDoor.NEventStore
 {
     public class NEventStoreOutbox : IOutbox
     {
         private readonly IStoreEvents _eventStore;
         private readonly TimeSpan _receptionDelay;
 
+        /// <summary>
+        /// Create `NEventStore` implementation of `IOutbox`.
+        /// </summary>
+        /// <param name="eventStore">NEventStore instance</param>
+        /// <param name="receptionDelay">
+        /// It should include transaction timeout + clock drift.
+        /// Otherwise, it may skip events during reception.
+        /// </param>
         public NEventStoreOutbox(IStoreEvents eventStore, TimeSpan receptionDelay)
         {
             _eventStore = eventStore;

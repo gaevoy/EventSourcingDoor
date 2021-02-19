@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor", "EventS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.Tests", "EventSourcingDoor.Tests\EventSourcingDoor.Tests.csproj", "{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.NEventStore", "EventSourcingDoor.NEventStore\EventSourcingDoor.NEventStore.csproj", "{A994B2D2-35CB-4A6F-80CF-58B5981C6DCF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.SqlStreamStore", "EventSourcingDoor.SqlStreamStore\EventSourcingDoor.SqlStreamStore.csproj", "{BF34D458-2490-4263-A1B3-42297781B8B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A994B2D2-35CB-4A6F-80CF-58B5981C6DCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A994B2D2-35CB-4A6F-80CF-58B5981C6DCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A994B2D2-35CB-4A6F-80CF-58B5981C6DCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A994B2D2-35CB-4A6F-80CF-58B5981C6DCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF34D458-2490-4263-A1B3-42297781B8B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF34D458-2490-4263-A1B3-42297781B8B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF34D458-2490-4263-A1B3-42297781B8B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF34D458-2490-4263-A1B3-42297781B8B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using EventSourcingDoor.Tests.Outboxes;
+using EventSourcingDoor.NEventStore;
 using NEventStore;
 using NEventStore.Persistence.Sql.SqlDialects;
 using NEventStore.Serialization.Json;

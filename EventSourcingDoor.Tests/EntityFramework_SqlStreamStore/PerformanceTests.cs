@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using EventSourcingDoor.SqlStreamStore;
 using EventSourcingDoor.Tests.Domain;
-using EventSourcingDoor.Tests.Outboxes;
 using NUnit.Framework;
 using SqlStreamStore;
 

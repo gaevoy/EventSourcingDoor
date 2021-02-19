@@ -3,17 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EventSourcingDoor.Tests.Utils;
 using Newtonsoft.Json;
 using SqlStreamStore;
 using SqlStreamStore.Streams;
 
-namespace EventSourcingDoor.Tests.Outboxes
+namespace EventSourcingDoor.SqlStreamStore
 {
     public class SqlStreamStoreOutbox : IOutbox
     {
         private readonly IStreamStore _eventStore;
         private readonly TimeSpan _receptionDelay;
+
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            TypeNameHandling = TypeNameHandling.Objects
+        };
 
         public SqlStreamStoreOutbox(IStreamStore eventStore, TimeSpan receptionDelay)
         {
@@ -35,7 +39,7 @@ namespace EventSourcingDoor.Tests.Outboxes
                     .Select(e => new NewStreamMessage(
                         Guid.NewGuid(),
                         e.GetType().FullName,
-                        JsonConvert.SerializeObject(e)))
+                        JsonConvert.SerializeObject(e, SerializerSettings)))
                     .ToArray();
                 await _eventStore.AppendToStream(
                     changeLog.StreamId,
@@ -57,7 +61,7 @@ namespace EventSourcingDoor.Tests.Outboxes
             async Task ReceiveEvent(IAllStreamSubscription _, StreamMessage message, CancellationToken __)
             {
                 var json = await message.GetJsonData();
-                var evt = JsonConvert.DeserializeObject(json, Type.GetType(message.Type));
+                var evt = JsonConvert.DeserializeObject(json, SerializerSettings);
                 onReceived(evt);
             }
         }
