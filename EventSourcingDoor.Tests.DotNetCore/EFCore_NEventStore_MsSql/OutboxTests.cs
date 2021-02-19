@@ -19,7 +19,7 @@ using TestDbContextWithOutbox = EventSourcingDoor.Tests.Domain.EFCore.TestDbCont
 
 #pragma warning disable 1998
 
-namespace EventSourcingDoor.Tests.EFCore_NEventStore
+namespace EventSourcingDoor.Tests.EFCore_NEventStore_MsSql
 {
     [Parallelizable(ParallelScope.None)]
     public class OutboxTests

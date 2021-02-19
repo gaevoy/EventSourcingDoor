@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
         <RootNamespace>EventSourcingDoor.Tests</RootNamespace>
+        <LangVersion>8</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,28 +13,28 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Include="..\EventSourcingDoor.Tests\Domain\IDomainEvent.cs">
+      <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Domain\IDomainEvent.cs">
         <Link>Domain\IDomainEvent.cs</Link>
       </Compile>
-      <Compile Include="..\EventSourcingDoor.Tests\Domain\UserAggregate.cs">
+      <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Domain\UserAggregate.cs">
         <Link>Domain\UserAggregate.cs</Link>
       </Compile>
-      <Compile Include="..\EventSourcingDoor.Tests\Domain\UserDeleted.cs">
+      <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Domain\UserDeleted.cs">
         <Link>Domain\UserDeleted.cs</Link>
       </Compile>
-      <Compile Include="..\EventSourcingDoor.Tests\Domain\UserNameChanged.cs">
+      <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Domain\UserNameChanged.cs">
         <Link>Domain\UserNameChanged.cs</Link>
       </Compile>
-      <Compile Include="..\EventSourcingDoor.Tests\Domain\UserRegistered.cs">
+      <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Domain\UserRegistered.cs">
         <Link>Domain\UserRegistered.cs</Link>
       </Compile>
-      <Compile Include="..\EventSourcingDoor.Tests\Utils\DbContextEfCoreExt.cs">
+      <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Utils\DbContextEfCoreExt.cs">
         <Link>Utils\DbContextEfCoreExt.cs</Link>
       </Compile>
-      <Compile Include="..\EventSourcingDoor.Tests\Utils\ThrottlerExt.cs">
+      <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Utils\ThrottlerExt.cs">
         <Link>Utils\ThrottlerExt.cs</Link>
       </Compile>
-      <Compile Include="..\EventSourcingDoor.Tests\Utils\TransactionExt.cs">
+      <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Utils\TransactionExt.cs">
         <Link>Utils\TransactionExt.cs</Link>
       </Compile>
     </ItemGroup>

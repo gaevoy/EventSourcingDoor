@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor", "EventSourcingDoor\EventSourcingDoor.csproj", "{1675FDFD-1774-4379-A11D-BB3BFB631E77}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.Tests", "EventSourcingDoor.Tests\EventSourcingDoor.Tests.csproj", "{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.Tests.DotNetFramework", "EventSourcingDoor.Tests.DotNetFramework\EventSourcingDoor.Tests.DotNetFramework.csproj", "{0AAFFD2A-8CBD-44DF-98F0-E415CA629D28}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.NEventStore", "EventSourcingDoor.NEventStore\EventSourcingDoor.NEventStore.csproj", "{A994B2D2-35CB-4A6F-80CF-58B5981C6DCF}"
 EndProject

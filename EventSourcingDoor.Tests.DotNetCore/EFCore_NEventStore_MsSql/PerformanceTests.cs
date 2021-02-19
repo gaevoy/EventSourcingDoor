@@ -16,7 +16,7 @@ using NUnit.Framework;
 using TestDbContext = EventSourcingDoor.Tests.Domain.EFCore.TestDbContext;
 using TestDbContextWithOutbox = EventSourcingDoor.Tests.Domain.EFCore.TestDbContextWithOutbox;
 
-namespace EventSourcingDoor.Tests.EFCore_NEventStore
+namespace EventSourcingDoor.Tests.EFCore_NEventStore_MsSql
 {
     [Parallelizable(ParallelScope.None), Explicit]
     public class PerformanceTests

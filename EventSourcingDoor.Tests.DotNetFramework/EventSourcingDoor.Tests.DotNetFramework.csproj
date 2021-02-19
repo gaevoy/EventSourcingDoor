@@ -6,6 +6,8 @@
         <IsPackable>false</IsPackable>
 
         <LangVersion>8</LangVersion>
+
+        <RootNamespace>EventSourcingDoor.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
