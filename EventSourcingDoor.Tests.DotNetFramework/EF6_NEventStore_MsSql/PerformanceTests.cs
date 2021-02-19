@@ -7,7 +7,7 @@ using NEventStore.Persistence.Sql.SqlDialects;
 using NEventStore.Serialization.Json;
 using NUnit.Framework;
 
-namespace EventSourcingDoor.Tests.EF6_NEventStore
+namespace EventSourcingDoor.Tests.EF6_NEventStore_MsSql
 {
     [Parallelizable(ParallelScope.None), Explicit]
     public class PerformanceTests : PerformanceTestsBase

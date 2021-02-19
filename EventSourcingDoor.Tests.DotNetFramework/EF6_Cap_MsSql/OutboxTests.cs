@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
-namespace EventSourcingDoor.Tests.EF6_Cap
+namespace EventSourcingDoor.Tests.EF6_Cap_MsSql
 {
     [Parallelizable(ParallelScope.None)]
     [Ignore("Cap is broken due lack of `TransactionScope` support.")]

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using SqlStreamStore;
 
-namespace EventSourcingDoor.Tests.EF6_SqlStreamStore
+namespace EventSourcingDoor.Tests.EF6_SqlStreamStore_MsSql
 {
     [Parallelizable(ParallelScope.None)]
     public class OutboxTests : OutboxTestsBase

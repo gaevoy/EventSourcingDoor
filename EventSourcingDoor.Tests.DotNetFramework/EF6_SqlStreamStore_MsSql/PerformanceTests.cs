@@ -5,7 +5,7 @@ using EventSourcingDoor.Tests.Domain;
 using NUnit.Framework;
 using SqlStreamStore;
 
-namespace EventSourcingDoor.Tests.EF6_SqlStreamStore
+namespace EventSourcingDoor.Tests.EF6_SqlStreamStore_MsSql
 {
     [Parallelizable(ParallelScope.None), Explicit]
     public class PerformanceTests : PerformanceTestsBase
