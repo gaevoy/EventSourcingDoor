@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Data.Entity;
 using EventSourcingDoor.EntityFramework6;
 
@@ -7,6 +8,11 @@ namespace EventSourcingDoor.Tests.Domain
     {
         public TestDbContextWithOutbox(string connectionString, IOutbox outbox)
             : base(connectionString, outbox)
+        {
+        }
+
+        public TestDbContextWithOutbox(DbConnection connection, IOutbox outbox)
+            : base(connection, true, outbox)
         {
         }
 

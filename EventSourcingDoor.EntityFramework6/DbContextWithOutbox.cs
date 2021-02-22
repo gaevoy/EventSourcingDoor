@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading;
@@ -13,6 +14,15 @@ namespace EventSourcingDoor.EntityFramework6
 
         protected DbContextWithOutbox(string connectionString, IOutbox outbox)
             : base(connectionString)
+        {
+            _outbox = outbox;
+        }
+
+        protected DbContextWithOutbox(
+            DbConnection existingConnection,
+            bool contextOwnsConnection,
+            IOutbox outbox)
+            : base(existingConnection, contextOwnsConnection)
         {
             _outbox = outbox;
         }

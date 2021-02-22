@@ -15,9 +15,10 @@ using NUnit.Framework;
 namespace EventSourcingDoor.Tests.EF6_NEventStore_Sqlite
 {
     [Parallelizable(ParallelScope.None)]
+    [Ignore("WIP")]
     public class OutboxTests : OutboxTestsBase
     {
-        public string ConnectionString => "SqliteConnectionString";
+        public string ConnectionString => "Data Source=EventSourcingDoor.db;journal mode=WAL;cache=private;";
         private IStoreEvents _eventStore;
 
         [SetUp]
@@ -26,13 +27,13 @@ namespace EventSourcingDoor.Tests.EF6_NEventStore_Sqlite
             // `receptionDelay` should include transaction timeout + clock drift. Otherwise, it may skip events during reception.
             var receptionDelay = TimeSpan.FromMilliseconds(3000);
             var eventStore = Wireup.Init()
-                .UsingSqlPersistence(SQLiteFactory.Instance, "Data Source=EventSourcingDoorEf6.db;journal mode=WAL;cache=private;")
+                .UsingSqlPersistence(SQLiteFactory.Instance, "Data Source=EventSourcingDoorOutbox.db;journal mode=WAL;cache=private;")
                 .WithDialect(new SqliteDialect())
                 .UsingJsonSerialization()
                 .Build();
             _eventStore = eventStore;
             Outbox = new NEventStoreOutbox(eventStore, receptionDelay);
-            using (var db = new TestDbContextWithOutbox(ConnectionString, Outbox))
+            using (var db = new TestDbContextWithOutbox(new SQLiteConnection(ConnectionString), Outbox))
             {
                 db.Database.CreateIfNotExists();
             }
@@ -43,7 +44,7 @@ namespace EventSourcingDoor.Tests.EF6_NEventStore_Sqlite
 
         protected override TestDbContextWithOutbox NewDbContext()
         {
-            return new TestDbContextWithOutbox(ConnectionString, Outbox);
+            return new TestDbContextWithOutbox(new SQLiteConnection(ConnectionString), Outbox);
         }
 
         protected override async Task<List<IDomainEvent>> LoadChangeLog(string streamId)
