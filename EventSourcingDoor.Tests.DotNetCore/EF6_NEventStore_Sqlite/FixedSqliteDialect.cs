@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using NEventStore.Persistence.Sql.SqlDialects;
 
-namespace EventSourcingDoor.Tests.EFCore_NEventStore_Sqlite
+namespace EventSourcingDoor.Tests.EF6_NEventStore_Sqlite
 {
     public class FixedSqliteDialect : SqliteDialect
     {

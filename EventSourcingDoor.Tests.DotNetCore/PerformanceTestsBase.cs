@@ -8,6 +8,7 @@ using EventSourcingDoor.Tests.Domain;
 using EventSourcingDoor.Tests.Domain.EFCore;
 using EventSourcingDoor.Tests.Utils;
 using NUnit.Framework;
+using TestDbContextWithOutbox = EventSourcingDoor.Tests.Domain.EFCore.TestDbContextWithOutbox;
 
 namespace EventSourcingDoor.Tests
 {

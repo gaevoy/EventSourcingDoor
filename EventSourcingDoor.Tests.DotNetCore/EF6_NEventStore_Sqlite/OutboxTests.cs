@@ -1,24 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 using EventSourcingDoor.NEventStore;
 using EventSourcingDoor.Tests.Domain;
-using EventSourcingDoor.Tests.Domain.EFCore;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using NEventStore;
+using NEventStore.Persistence.Sql.SqlDialects;
 using NEventStore.Serialization.Json;
 using NUnit.Framework;
 
 #pragma warning disable 1998
 
-namespace EventSourcingDoor.Tests.EFCore_NEventStore_Sqlite
+namespace EventSourcingDoor.Tests.EF6_NEventStore_Sqlite
 {
     [Parallelizable(ParallelScope.None)]
     public class OutboxTests : OutboxTestsBase
     {
-        public string ConnectionString => "Data Source=EventSourcingDoor.db;";
+        public string ConnectionString => "SqliteConnectionString";
         private IStoreEvents _eventStore;
 
         [SetUp]
@@ -27,22 +26,15 @@ namespace EventSourcingDoor.Tests.EFCore_NEventStore_Sqlite
             // `receptionDelay` should include transaction timeout + clock drift. Otherwise, it may skip events during reception.
             var receptionDelay = TimeSpan.FromMilliseconds(3000);
             var eventStore = Wireup.Init()
-                .UsingSqlPersistence(SqliteFactory.Instance, ConnectionString)
-                .WithDialect(new FixedSqliteDialect())
+                .UsingSqlPersistence(SQLiteFactory.Instance, "Data Source=EventSourcingDoorEf6.db;journal mode=WAL;cache=private;")
+                .WithDialect(new SqliteDialect())
                 .UsingJsonSerialization()
                 .Build();
             _eventStore = eventStore;
             Outbox = new NEventStoreOutbox(eventStore, receptionDelay);
-            var options = new DbContextOptionsBuilder().UseSqlite(ConnectionString).Options;
-            var db = new TestDbContextWithOutbox(options, Outbox);
-            try
+            using (var db = new TestDbContextWithOutbox(ConnectionString, Outbox))
             {
-                _ = db.Users.FirstOrDefault();
-            }
-            catch (SqliteException)
-            {
-                await db.Database.EnsureDeletedAsync();
-                await db.Database.EnsureCreatedAsync();
+                db.Database.CreateIfNotExists();
             }
 
             eventStore.Advanced.Initialize();
@@ -51,12 +43,7 @@ namespace EventSourcingDoor.Tests.EFCore_NEventStore_Sqlite
 
         protected override TestDbContextWithOutbox NewDbContext()
         {
-            var options = new DbContextOptionsBuilder()
-                .UseSqlite(ConnectionString)
-                .ConfigureWarnings(x =>
-                    x.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.AmbientTransactionWarning))
-                .Options;
-            return new TestDbContextWithOutbox(options, Outbox);
+            return new TestDbContextWithOutbox(ConnectionString, Outbox);
         }
 
         protected override async Task<List<IDomainEvent>> LoadChangeLog(string streamId)
