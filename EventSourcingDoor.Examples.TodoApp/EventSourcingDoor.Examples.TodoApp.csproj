@@ -6,7 +6,15 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
+      <PackageReference Include="NEventStore.Persistence.Sql" Version="8.0.0" />
+      <PackageReference Include="NEventStore.Serialization.Json" Version="8.0.0" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\EventSourcingDoor.EntityFrameworkCore\EventSourcingDoor.EntityFrameworkCore.csproj" />
+      <ProjectReference Include="..\EventSourcingDoor.NEventStore\EventSourcingDoor.NEventStore.csproj" />
+      <ProjectReference Include="..\EventSourcingDoor\EventSourcingDoor.csproj" />
     </ItemGroup>
 
 </Project>
