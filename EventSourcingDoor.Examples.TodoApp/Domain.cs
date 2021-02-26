@@ -34,14 +34,16 @@ namespace EventSourcingDoor.Examples.TodoApp
 
         public Goal(Guid id, string description)
         {
+            if (description == null) throw new ArgumentNullException(nameof(description));
             Id = id;
-            Description = description ?? throw new ArgumentNullException(nameof(description));
+            Description = description;
             CreatedAt = DateTimeOffset.UtcNow;
         }
 
         public void Refine(string description)
         {
-            Description = description ?? throw new ArgumentNullException(nameof(description));
+            if (description == null) throw new ArgumentNullException(nameof(description));
+            Description = description;
         }
 
         public void AddTask(Guid id, string description)
@@ -54,6 +56,7 @@ namespace EventSourcingDoor.Examples.TodoApp
         public void UpdateAchievement()
         {
             IsAchieved = Tasks.All(e => e.IsFinished);
+        }
 
         public TodoTask GetTask(Guid id)
         {
@@ -76,16 +79,18 @@ namespace EventSourcingDoor.Examples.TodoApp
 
         public TodoTask(Goal goal, Guid id, string description)
         {
+            if (description == null) throw new ArgumentNullException(nameof(description));
             Goal = goal;
             GoalId = goal.Id;
             Id = id;
             CreatedAt = DateTimeOffset.UtcNow;
-            Description = description ?? throw new ArgumentNullException(nameof(description));
+            Description = description;
         }
 
         public void Change(string description)
         {
-            Description = description ?? throw new ArgumentNullException(nameof(description));
+            if (description == null) throw new ArgumentNullException(nameof(description));
+            Description = description;
         }
 
         public void Finish()
