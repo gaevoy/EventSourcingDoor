@@ -10,7 +10,7 @@ const Goals = {
     },
     methods: {
         setGoal() {
-            fetch(`/api/goals?description=${decodeURI(this.newGoalDescription)}`, {method: 'POST'})
+            fetch(`/api/goals?description=${encodeURIComponent(this.newGoalDescription)}`, {method: 'POST'})
                 .then(response => response.json())
                 .then(goalId => {
                     this.goals.push({
@@ -29,14 +29,14 @@ const Tasks = {
     },
     created() {
         let goalId = this.$route.params.goalId;
-        fetch(`/api/goals/${decodeURI(goalId)}/tasks`)
+        fetch(`/api/goals/${encodeURIComponent(goalId)}/tasks`)
             .then(response => response.json())
             .then(data => this.tasks = data);
     },
     methods: {
         addTask() {
             let goalId = this.$route.params.goalId;
-            fetch(`/api/goals/${decodeURI(goalId)}/tasks?description=${decodeURI(this.newTaskDescription)}`, {method: 'POST'})
+            fetch(`/api/goals/${encodeURIComponent(goalId)}/tasks?description=${encodeURIComponent(this.newTaskDescription)}`, {method: 'POST'})
                 .then(response => response.json())
                 .then(taskId => {
                     this.tasks.push({
@@ -46,6 +46,18 @@ const Tasks = {
                         isFinished: false
                     });
                     this.newTaskDescription = "";
+                });
+        },
+        changeTask(task) {
+            fetch(`/api/goals/${encodeURIComponent(task.goalId)}/tasks/${encodeURIComponent(task.id)}?description=${encodeURIComponent(task.description)}`, {method: 'PUT'})
+                .then(response => {
+                    // TODO: Check status
+                });
+        },
+        finishTask(task) {
+            fetch(`/api/goals/${encodeURIComponent(task.goalId)}/tasks/${encodeURIComponent(task.id)}`, {method: 'DELETE'})
+                .then(response => {
+                    // TODO: Check status
                 });
         }
     }

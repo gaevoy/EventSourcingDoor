@@ -22,7 +22,8 @@
         <h4 class="card-header">Your goals</h4>
         <ul class="list-group list-group-flush">
             <li v-for="goal in goals" class="list-group-item">
-                <router-link :to="{ name: 'tasks', params: {goalId: goal.id } }">
+                <router-link :style="[goal.isAchieved ? {'text-decoration' : 'line-through'}:{}]"
+                             :to="{ name: 'tasks', params: {goalId: goal.id } }">
                     {{ goal.description }}
                 </router-link>
             </li>
@@ -35,7 +36,8 @@
                                placeholder="New goal description"
                                v-focus/>
                         <div class="input-group-append">
-                            <button class="btn btn-primary" type="submit">Set a goal</button>
+                            <button class="btn btn-outline-primary" type="submit" style="width: 105px;">Set a goal
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -48,7 +50,30 @@
         <h4 class="card-header">Your tasks to do</h4>
         <ul class="list-group list-group-flush">
             <li v-for="task in tasks" class="list-group-item">
-                {{ task.description }}
+                <form @submit.prevent="changeTask(task)">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input v-model="task.isFinished"
+                                       type="checkbox"
+                                       :disabled="task.isFinished"
+                                       @change="finishTask(task)"/>
+                            </div>
+                        </div>
+                        <input v-model="task.description"
+                               type="text"
+                               :style="[task.isFinished ? {'text-decoration' : 'line-through'}:{}]"
+                               :disabled="task.isFinished"
+                               class="form-control"/>
+                        <div v-if="!task.isFinished" class="input-group-append">
+                            <button class="btn btn-outline-secondary"
+                                    type="submit"
+                                    :disabled="task.isFinished"
+                                    style="width: 105px;">Change
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </li>
             <li class="list-group-item">
                 <form @submit.prevent="addTask">
@@ -59,7 +84,8 @@
                                placeholder="New task description"
                                v-focus/>
                         <div class="input-group-append">
-                            <button class="btn btn-primary" type="submit">Add a task</button>
+                            <button class="btn btn-outline-primary" type="submit" style="width: 105px;">Add a task
+                            </button>
                         </div>
                     </div>
                 </form>
