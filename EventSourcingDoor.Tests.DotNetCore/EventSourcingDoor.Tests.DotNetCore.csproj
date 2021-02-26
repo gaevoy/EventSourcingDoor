@@ -53,6 +53,7 @@
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
       <PackageReference Include="NEventStore.Persistence.Sql" Version="8.0.0" />
       <PackageReference Include="NEventStore.Serialization.Json" Version="8.0.0" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.2" />
       <PackageReference Include="NUnit" Version="3.13.1" />
       <PackageReference Include="System.Data.SQLite" Version="1.0.113.7" />
     </ItemGroup>
