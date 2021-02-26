@@ -54,6 +54,10 @@ namespace EventSourcingDoor.Examples.TodoApp
         public void UpdateAchievement()
         {
             IsAchieved = Tasks.All(e => e.IsFinished);
+
+        public TodoTask GetTask(Guid id)
+        {
+            return Tasks.Find(e => e.Id == id);
         }
     }
 

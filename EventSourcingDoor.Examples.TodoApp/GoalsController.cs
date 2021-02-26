@@ -67,7 +67,7 @@ namespace EventSourcingDoor.Examples.TodoApp
         public async Task ChangeTask(Guid goalId, Guid taskId, string description)
         {
             var goal = await _db.Goals.Where(e => e.Id == goalId).Include(e => e.Tasks).FirstAsync();
-            var task = goal.Tasks.First(e => e.Id == taskId);
+            var task = goal.GetTask(taskId);
             task.Change(description);
             await _db.SaveChangesAsync();
         }
@@ -76,7 +76,7 @@ namespace EventSourcingDoor.Examples.TodoApp
         public async Task FinishTask(Guid goalId, Guid taskId)
         {
             var goal = await _db.Goals.Where(e => e.Id == goalId).Include(e => e.Tasks).FirstAsync();
-            var task = goal.Tasks.First(e => e.Id == taskId);
+            var task = goal.GetTask(taskId);
             task.Finish();
             await _db.SaveChangesAsync();
         }
