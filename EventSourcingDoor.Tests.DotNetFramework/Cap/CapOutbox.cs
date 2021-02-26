@@ -21,12 +21,13 @@ namespace EventSourcingDoor.Tests.Cap
         {
             foreach (var changeLog in changes)
             {
+                var streamId = changeLog.StreamId ?? Guid.NewGuid().ToString();
                 foreach (var change in changeLog.GetUncommittedChanges())
                 {
                     var headers = new Dictionary<string, string>()
                     {
                         {"DotNetType", change.GetType().FullName},
-                        {"StreamId", changeLog.StreamId}
+                        {"StreamId", streamId}
                     };
                     _capPublisher.Publish("outbox", change, headers);
                 }
@@ -39,12 +40,13 @@ namespace EventSourcingDoor.Tests.Cap
         {
             foreach (var changeLog in changes)
             {
+                var streamId = changeLog.StreamId ?? Guid.NewGuid().ToString();
                 foreach (var change in changeLog.GetUncommittedChanges())
                 {
                     var headers = new Dictionary<string, string>()
                     {
                         {"DotNetType", change.GetType().FullName},
-                        {"StreamId", changeLog.StreamId}
+                        {"StreamId", streamId}
                     };
                     await _capPublisher.PublishAsync("outbox", change, headers, cancellation);
                 }

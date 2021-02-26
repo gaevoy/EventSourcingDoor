@@ -6,25 +6,27 @@ namespace EventSourcingDoor
 {
     public static class ChangeLog
     {
-        public static ChangeLogDefinition<TState> For<TState>() where TState : IHaveStreamId
+        public static ChangeLogDefinition<TState> For<TState>()
             => new ChangeLogDefinition<TState>();
     }
 
-    public class ChangeLog<TState> : IChangeLog where TState : IHaveStreamId
+    public class ChangeLog<TState> : IChangeLog
     {
         private readonly TState _state;
         private readonly ChangeLogDefinition<TState> _definition;
         private readonly List<IEvent> _changes = new List<IEvent>();
-        private readonly IHaveVersion _versionState;
+        private readonly IHaveVersion _versionOwner;
+        private readonly IHaveStreamId _streamIdOwner;
 
         public ChangeLog(TState state, ChangeLogDefinition<TState> definition)
         {
             _state = state;
             _definition = definition;
-            _versionState = state is IHaveVersion versionState ? versionState : null;
+            _versionOwner = state is IHaveVersion versionState ? versionState : null;
+            _streamIdOwner = state is IHaveStreamId streamIdState ? streamIdState : null;
         }
 
-        public string StreamId => _state.StreamId;
+        public string StreamId => _streamIdOwner?.StreamId;
 
         public IEnumerable<IEvent> GetUncommittedChanges() => _changes;
 
@@ -39,23 +41,23 @@ namespace EventSourcingDoor
                 _definition.ApplyChange(_state, evt);
             }
 
-            if (_versionState != null)
-                _versionState.Version = version;
+            if (_versionOwner != null)
+                _versionOwner.Version = version;
         }
 
         public void ApplyChange(IEvent evt)
         {
             _definition.ApplyChange(_state, evt);
             _changes.Add(evt);
-            if (_versionState == null) return;
-            _versionState.Version++;
+            if (_versionOwner == null) return;
+            _versionOwner.Version++;
             foreach (var change in _changes)
                 if (change is IHaveVersion eventWithVersion)
-                    eventWithVersion.Version = _versionState.Version;
+                    eventWithVersion.Version = _versionOwner.Version;
         }
     }
 
-    public class ChangeLog<TState, TEventBase> : ChangeLog<TState> where TState : IHaveStreamId
+    public class ChangeLog<TState, TEventBase> : ChangeLog<TState>
     {
         public ChangeLog(TState state, ChangeLogDefinition<TState> definition) : base(state, definition)
         {

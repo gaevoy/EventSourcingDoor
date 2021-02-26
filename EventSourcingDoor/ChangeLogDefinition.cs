@@ -4,7 +4,7 @@ using IEvent = System.Object;
 
 namespace EventSourcingDoor
 {
-    public class ChangeLogDefinition<TState> where TState : IHaveStreamId
+    public class ChangeLogDefinition<TState>
     {
         private readonly Dictionary<Type, Action<TState, IEvent>> _handle =
             new Dictionary<Type, Action<TState, object>>();

@@ -42,7 +42,7 @@ namespace EventSourcingDoor.SqlStreamStore
                         JsonConvert.SerializeObject(e, SerializerSettings)))
                     .ToArray();
                 await _eventStore.AppendToStream(
-                    changeLog.StreamId,
+                    changeLog.StreamId ?? Guid.NewGuid().ToString(),
                     ExpectedVersion.Any,
                     streamMessages, cancellation);
                 changeLog.MarkChangesAsCommitted();

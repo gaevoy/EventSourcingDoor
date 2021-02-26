@@ -30,7 +30,8 @@ namespace EventSourcingDoor.NEventStore
         {
             foreach (var changeLog in changes)
             {
-                using (var stream = _eventStore.OpenStream(changeLog.StreamId))
+                var streamId = changeLog.StreamId ?? Guid.NewGuid().ToString();
+                using (var stream = _eventStore.OpenStream(streamId))
                 {
                     foreach (var change in changeLog.GetUncommittedChanges())
                         stream.Add(new EventMessage {Body = change});

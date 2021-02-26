@@ -2,7 +2,7 @@ using System;
 
 namespace EventSourcingDoor.Tests.Domain
 {
-    public class UserAggregate : AggregateBase<UserAggregate, IDomainEvent>, IHaveVersion
+    public class UserAggregate : AggregateBase<UserAggregate, IDomainEvent>, IHaveVersion, IHaveStreamId
     {
         public override string StreamId => Id.ToString("N");
         public Guid Id { get; private set; }
