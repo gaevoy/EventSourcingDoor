@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventSourcingDoor.TodoListExample.Domain
+namespace EventSourcingDoor.Examples.TodoApp
 {
     public class TodoDbContext : DbContext
     {
@@ -10,49 +11,56 @@ namespace EventSourcingDoor.TodoListExample.Domain
         {
         }
 
-        public DbSet<TodoList> TodoLists { get; set; }
+        public DbSet<Goal> Goals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<TodoList>().Property(p => p.Id).ValueGeneratedNever();
+            modelBuilder.Entity<Goal>().Property(p => p.Id).ValueGeneratedNever();
             modelBuilder.Entity<TodoTask>().Property(p => p.Id).ValueGeneratedNever();
         }
     }
 
-    public class TodoList
+    public class Goal
     {
         public Guid Id { get; private set; }
         public DateTimeOffset CreatedAt { get; private set; }
-        public string Name { get; private set; }
+        public string Description { get; private set; }
+        public bool IsAchieved { get; private set; }
         public List<TodoTask> Tasks { get; private set; } = new();
 
-        protected TodoList()
+        protected Goal()
         {
         }
 
-        public TodoList(Guid id, string name)
+        public Goal(Guid id, string description)
         {
             Id = id;
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Description = description ?? throw new ArgumentNullException(nameof(description));
             CreatedAt = DateTimeOffset.UtcNow;
         }
 
-        public void Rename(string name)
+        public void Refine(string description)
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Description = description ?? throw new ArgumentNullException(nameof(description));
         }
 
         public void AddTask(Guid id, string description)
         {
             var task = new TodoTask(this, id, description);
             Tasks.Add(task);
+            UpdateAchievement();
+        }
+
+        public void UpdateAchievement()
+        {
+            IsAchieved = Tasks.All(e => e.IsFinished);
         }
     }
 
     public class TodoTask
     {
-        public TodoList List { get; private set; }
-        public Guid ListId { get; private set; }
+        public Goal Goal { get; private set; }
+        public Guid GoalId { get; private set; }
         public Guid Id { get; private set; }
         public DateTimeOffset CreatedAt { get; private set; }
         public string Description { get; private set; }
@@ -62,16 +70,16 @@ namespace EventSourcingDoor.TodoListExample.Domain
         {
         }
 
-        public TodoTask(TodoList list, Guid id, string description)
+        public TodoTask(Goal goal, Guid id, string description)
         {
-            List = list;
-            ListId = list.Id;
+            Goal = goal;
+            GoalId = goal.Id;
             Id = id;
             CreatedAt = DateTimeOffset.UtcNow;
             Description = description ?? throw new ArgumentNullException(nameof(description));
         }
 
-        public void ChangeDescription(string description)
+        public void Change(string description)
         {
             Description = description ?? throw new ArgumentNullException(nameof(description));
         }
@@ -79,6 +87,7 @@ namespace EventSourcingDoor.TodoListExample.Domain
         public void Finish()
         {
             IsFinished = true;
+            Goal.UpdateAchievement();
         }
     }
 }

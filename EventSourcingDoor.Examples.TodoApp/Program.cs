@@ -1,4 +1,3 @@
-using EventSourcingDoor.TodoListExample.Domain;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -6,16 +5,25 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace EventSourcingDoor.TodoListExample
+namespace EventSourcingDoor.Examples.TodoApp
 {
+    public class Program
+    {
+        public static void Main(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(web => { web.UseStartup<Startup>(); })
+                .Build()
+                .Run();
+    }
+
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
-
-        public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {

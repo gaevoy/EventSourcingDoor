@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.EntityFra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.Tests.DotNetCore", "EventSourcingDoor.Tests.DotNetCore\EventSourcingDoor.Tests.DotNetCore.csproj", "{FF008C1E-90D3-41E8-A1C0-9913788C0199}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.TodoListExample", "EventSourcingDoor.TodoListExample\EventSourcingDoor.TodoListExample.csproj", "{01AD86A1-BA5C-4EAE-9D1C-93040B10BC62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingDoor.Examples.TodoApp", "EventSourcingDoor.Examples.TodoApp\EventSourcingDoor.Examples.TodoApp.csproj", "{01AD86A1-BA5C-4EAE-9D1C-93040B10BC62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
