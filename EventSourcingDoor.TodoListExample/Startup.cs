@@ -32,6 +32,8 @@ namespace EventSourcingDoor.TodoListExample
             }
 
             app.UseHttpsRedirection();
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
             app.UseRouting();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
             using var scope = app.ApplicationServices.CreateScope();

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EventSourcingDoor.TodoListExample.Controllers
 {
     [ApiController]
-    [Route("todolists")]
+    [Route("api/todolists")]
     public class TodoListController : ControllerBase
     {
         private readonly TodoDbContext _db;

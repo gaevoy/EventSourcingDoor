@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TodoList | EventSourcingDoor</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://unpkg.com/vue-router@2.0.0/dist/vue-router.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+
+</head>
+<body>
+<div class="container py-3">
+    <h3 class="text-center">Todo List | EventSourcingDoor</h3>
+
+    <div id="app">
+        <router-view></router-view>
+    </div>
+</div>
+<script type="text/x-template" id="todo-list-template">
+    <div class="list-group">
+        <router-link v-for="todoList in todoLists"
+                     class="list-group-item list-group-item-action"
+                     :to="{ name: 'task-list', params: {todoListId: todoList.id } }">
+            {{ todoList.name }}
+        </router-link>
+    </div>
+</script>
+<script type="text/x-template" id="task-list-template">
+    <div class="list-group">
+        <div v-for="todo in todoTasks" class="list-group-item list-group-item-action">
+            {{ todo.description }}
+        </div>
+    </div>
+</script>
+<script>
+    const TodoList = {
+        template: '#todo-list-template',
+        data() {
+            return {todoLists: []};
+        },
+        created() {
+            fetch('/api/todolists')
+                .then(response => response.json())
+                .then(data => this.todoLists = data);
+        }
+    };
+    const TaskList = {
+        template: '#task-list-template',
+        data() {
+            return {todoTasks: []};
+        },
+        created() {
+            fetch(`/api/todolists/${this.$route.params.todoListId}/tasks`)
+                .then(response => response.json())
+                .then(data => this.todoTasks = data);
+        }
+    };
+    const app = new Vue({
+        router: new VueRouter({
+            routes: [
+                {path: '/', component: TodoList},
+                {path: '/:todoListId', component: TaskList, name: 'task-list'}
+            ]
+        }),
+        el: '#app'
+    });
+</script>
+</body>
+</html>
