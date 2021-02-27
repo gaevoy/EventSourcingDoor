@@ -311,7 +311,7 @@ namespace EventSourcingDoor.Tests.EFCore3_NEventStore_MsSql
             // Given
             var events = new List<IDomainEvent>();
 
-            var _ = Outbox.Receive(evt =>
+            var _ = Outbox.Receive((evt, _) =>
             {
                 lock (events)
                     events.Add((IDomainEvent) evt);

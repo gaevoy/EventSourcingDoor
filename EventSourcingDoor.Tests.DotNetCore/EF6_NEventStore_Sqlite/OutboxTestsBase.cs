@@ -277,7 +277,7 @@ namespace EventSourcingDoor.Tests.EF6_NEventStore_Sqlite
             // Given
             var events = new List<IDomainEvent>();
             var timeout = new CancellationTokenSource(20_000);
-            var _ = Outbox.Receive(evt =>
+            var _ = Outbox.Receive((evt, _) =>
             {
                 lock (events)
                     events.Add((IDomainEvent) evt);

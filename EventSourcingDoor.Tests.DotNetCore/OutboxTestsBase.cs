@@ -275,7 +275,7 @@ namespace EventSourcingDoor.Tests
             // Given
             var events = new List<IDomainEvent>();
 
-            var _ = Outbox.Receive(evt =>
+            var _ = Outbox.Receive((evt, _) =>
             {
                 lock (events)
                     events.Add((IDomainEvent) evt);

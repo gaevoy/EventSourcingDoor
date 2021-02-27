@@ -55,9 +55,9 @@ namespace EventSourcingDoor.Tests.Cap
             }
         }
 
-        public Task Receive(Action<object> onReceived, CancellationToken cancellation)
+        public Task Receive(Action<object, object> onReceived, CancellationToken cancellation, object checkpoint)
         {
-            return _transport.Subscribe(e => { onReceived(e.Event); }, cancellation);
+            return _transport.Subscribe(e => { onReceived(e.Event, e); }, cancellation);
         }
     }
 }

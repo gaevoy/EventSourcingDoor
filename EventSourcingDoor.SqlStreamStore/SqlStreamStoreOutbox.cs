@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SqlStreamStore;
 using SqlStreamStore.Streams;
+using IEvent = System.Object;
+using IReceptionContext = System.Object;
+using ICheckpoint = System.Object;
 
 namespace EventSourcingDoor.SqlStreamStore
 {
@@ -49,20 +52,23 @@ namespace EventSourcingDoor.SqlStreamStore
             }
         }
 
-        public async Task Receive(Action<object> onReceived, CancellationToken cancellation)
+        public async Task Receive(
+            Action<IEvent, IReceptionContext> onReceived,
+            CancellationToken cancellation,
+            ICheckpoint checkpoint)
         {
             // TODO: Make use of `message.Position`
             var cancelling = new TaskCompletionSource<object>();
             cancellation.Register(() => cancelling.SetResult(null));
             var streamStore = new OutboxAwareStreamStore(_eventStore, _receptionDelay);
-            using (streamStore.SubscribeToAll(null, ReceiveEvent))
+            using (streamStore.SubscribeToAll((long?) checkpoint, ReceiveEvent))
                 await cancelling.Task;
 
             async Task ReceiveEvent(IAllStreamSubscription _, StreamMessage message, CancellationToken __)
             {
                 var json = await message.GetJsonData();
                 var evt = JsonConvert.DeserializeObject(json, SerializerSettings);
-                onReceived(evt);
+                onReceived(evt, message);
             }
         }
     }

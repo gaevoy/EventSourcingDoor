@@ -4,6 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using NEventStore;
 using NEventStore.PollingClient;
+using IEvent = System.Object;
+using IReceptionContext = System.Object;
+using ICheckpoint = System.Object;
 
 namespace EventSourcingDoor.NEventStore
 {
@@ -48,14 +51,16 @@ namespace EventSourcingDoor.NEventStore
             return Task.CompletedTask;
         }
 
-        public async Task Receive(Action<object> onReceived, CancellationToken cancellation)
+        public async Task Receive(
+            Action<IEvent, IReceptionContext> onReceived,
+            CancellationToken cancellation,
+            ICheckpoint checkpoint)
         {
-            // TODO: Make use of `commit.CheckpointToken`
             var cancelling = new TaskCompletionSource<object>();
             cancellation.Register(() => cancelling.SetResult(null));
             using (var pollingClient = new PollingClient2(_eventStore.Advanced, OnCommitReceived))
             {
-                pollingClient.StartFrom();
+                pollingClient.StartFrom((long?) checkpoint ?? 0);
                 await cancelling.Task;
             }
 
@@ -65,7 +70,7 @@ namespace EventSourcingDoor.NEventStore
                 if (commit.CommitStamp > visibilityDate)
                     return PollingClient2.HandlingResult.Retry; // Wait more for the guaranteed reception delay
                 foreach (var evt in commit.Events)
-                    onReceived(evt.Body);
+                    onReceived(evt.Body, commit);
 
                 return PollingClient2.HandlingResult.MoveToNext;
             }
