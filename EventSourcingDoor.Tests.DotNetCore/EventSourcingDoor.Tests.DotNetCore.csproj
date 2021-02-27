@@ -14,6 +14,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Domain\AggregateBase.cs">
+        <Link>Domain\AggregateBase.cs</Link>
+      </Compile>
       <Compile Include="..\EventSourcingDoor.Tests.DotNetFramework\Domain\IDomainEvent.cs">
         <Link>Domain\IDomainEvent.cs</Link>
       </Compile>

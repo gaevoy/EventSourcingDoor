@@ -23,7 +23,7 @@ namespace EventSourcingDoor.Tests.Domain
 
         public User(Guid id, string name) : this()
         {
-            _changes.ApplyChange(new UserRegistered {Id = id, Name = name});
+            _changes.Apply(new UserRegistered {Id = id, Name = name});
         }
 
         private void When(UserRegistered evt)
@@ -34,7 +34,7 @@ namespace EventSourcingDoor.Tests.Domain
 
         public void Rename(string name)
         {
-            _changes.ApplyChange(new UserNameChanged {Id = Id, Name = name});
+            _changes.Apply(new UserNameChanged {Id = Id, Name = name});
         }
 
         private void When(UserNameChanged evt)

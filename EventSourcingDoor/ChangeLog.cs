@@ -45,7 +45,7 @@ namespace EventSourcingDoor
                 _versionOwner.Version = version;
         }
 
-        public void ApplyChange(IEvent evt)
+        public void Apply(IEvent evt)
         {
             _definition.ApplyChange(_state, evt);
             _changes.Add(evt);
@@ -69,7 +69,7 @@ namespace EventSourcingDoor
         public void LoadFromHistory(IEnumerable<TEventBase> history)
             => base.LoadFromHistory(history.Cast<IEvent>());
 
-        public void ApplyChange(TEventBase evt)
-            => base.ApplyChange(evt);
+        public void Apply(TEventBase evt)
+            => base.Apply(evt);
     }
 }

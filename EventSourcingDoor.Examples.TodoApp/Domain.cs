@@ -32,7 +32,7 @@ namespace EventSourcingDoor.Examples.TodoApp
         {
         }
 
-        public Goal(Guid id, string description)
+        public Goal(Guid id, string description) : this()
         {
             if (description == null) throw new ArgumentNullException(nameof(description));
             Id = id;
@@ -77,7 +77,7 @@ namespace EventSourcingDoor.Examples.TodoApp
         {
         }
 
-        public TodoTask(Goal goal, Guid id, string description)
+        internal TodoTask(Goal goal, Guid id, string description) : this()
         {
             if (description == null) throw new ArgumentNullException(nameof(description));
             Goal = goal;

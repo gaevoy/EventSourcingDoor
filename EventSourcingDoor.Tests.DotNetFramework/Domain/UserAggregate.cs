@@ -2,7 +2,7 @@ using System;
 
 namespace EventSourcingDoor.Tests.Domain
 {
-    public class UserAggregate : AggregateBase<UserAggregate, IDomainEvent>, IHaveVersion, IHaveStreamId
+    public class UserAggregate : AggregateBase<UserAggregate, IDomainEvent>, IHaveVersion
     {
         public override string StreamId => Id.ToString("N");
         public Guid Id { get; private set; }
@@ -10,19 +10,20 @@ namespace EventSourcingDoor.Tests.Domain
         public long Version { get; set; }
         public DateTime? DeletedAt { get; set; }
 
-        private static readonly ChangeLogDefinition<UserAggregate> CachedDefinition = ChangeLog
+        private static readonly ChangeLogDefinition<UserAggregate> Definition = ChangeLog
             .For<UserAggregate>()
             .On<UserRegistered>((self, evt) => self.When(evt))
             .On<UserNameChanged>((self, evt) => self.When(evt))
             .On<UserDeleted>((self, evt) => self.When(evt));
 
-        protected override ChangeLogDefinition<UserAggregate> Definition => CachedDefinition;
+        public override IChangeLog Changes { get; }
 
         public UserAggregate()
         {
+            Changes = Definition.New<IDomainEvent>(this);
         }
 
-        public UserAggregate(Guid id, string name)
+        public UserAggregate(Guid id, string name) : this()
         {
             ApplyChange(new UserRegistered {Id = id, Name = name});
         }
