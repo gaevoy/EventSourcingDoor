@@ -19,6 +19,7 @@ namespace EventSourcingDoor.Examples.TodoApp
     public class Startup
     {
         public IConfiguration Configuration { get; }
+        private string ConnectionString => Configuration["ConnectionStrings:PostgreSqlConnection"];
 
         public Startup(IConfiguration configuration)
         {
@@ -28,8 +29,7 @@ namespace EventSourcingDoor.Examples.TodoApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddDbContext<TodoDbContext>(options =>
-                options.UseNpgsql(Configuration["ConnectionStrings:PostgreSqlConnection"]));
+            services.AddDbContext<TodoDbContext>(options => options.UseNpgsql(ConnectionString));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
