@@ -28,5 +28,18 @@ namespace EventSourcingDoor
                 throw new HandlerIsNotDefinedException(evt.GetType());
             handle(state, evt);
         }
+
+        public ChangeLogDefinition<TState> And(ChangeLogDefinition<TState> definition)
+        {
+            foreach (var pair in definition._handle)
+            {
+                var eventType = pair.Key;
+                var handler = pair.Value;
+                if (_handle.ContainsKey(eventType)) throw new HandlerIsAlreadyDefinedException(eventType);
+                _handle[eventType] = handler;
+            }
+
+            return this;
+        }
     }
 }

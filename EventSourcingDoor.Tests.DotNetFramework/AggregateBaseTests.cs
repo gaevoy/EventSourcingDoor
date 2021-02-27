@@ -20,7 +20,7 @@ namespace EventSourcingDoor.Tests
             var user = new UserAggregate(id, name);
 
             // Then
-            var changes = user.GetUncommittedChanges().ToList();
+            var changes = user.Changes.GetUncommittedChanges().ToList();
             Assert.That(changes, Has.Count.EqualTo(1));
             Assert.That(changes[0], Is.TypeOf<UserRegistered>());
             var evt = (UserRegistered) changes[0];
@@ -38,13 +38,13 @@ namespace EventSourcingDoor.Tests
             var name = Random.GetString();
             var changedName = Random.GetString();
             var user = new UserAggregate(id, name);
-            user.MarkChangesAsCommitted();
+            user.Changes.MarkChangesAsCommitted();
 
             // When
             user.Rename(changedName);
 
             // Then
-            var changes = user.GetUncommittedChanges().ToList();
+            var changes = user.Changes.GetUncommittedChanges().ToList();
             Assert.That(changes, Has.Count.EqualTo(1));
             Assert.That(changes[0], Is.TypeOf<UserNameChanged>());
             var evt = (UserNameChanged) changes[0];
@@ -69,10 +69,10 @@ namespace EventSourcingDoor.Tests
 
             // When
             var user = new UserAggregate();
-            user.LoadFromHistory(history);
+            user.Changes.LoadFromHistory(history);
 
             // Then
-            Assert.That(user.GetUncommittedChanges(), Is.Empty);
+            Assert.That(user.Changes.GetUncommittedChanges(), Is.Empty);
             Assert.That(user.Id, Is.EqualTo(id));
             Assert.That(user.Name, Is.EqualTo(changedName));
             Assert.That(user.Version, Is.EqualTo(2));

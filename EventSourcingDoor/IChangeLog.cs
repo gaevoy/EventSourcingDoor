@@ -9,5 +9,6 @@ namespace EventSourcingDoor
         IEnumerable<IEvent> GetUncommittedChanges();
         void MarkChangesAsCommitted();
         void LoadFromHistory(IEnumerable<IEvent> history);
+        void ApplyChange(IEvent evt);
     }
 }

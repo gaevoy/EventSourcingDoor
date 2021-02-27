@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using EventSourcingDoor.Tests.Domain;
-using EventSourcingDoor.Tests.Domain.EFCore;
 using EventSourcingDoor.Tests.Utils;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +27,7 @@ namespace EventSourcingDoor.Tests
             // Given
             var user = new UserAggregate(Guid.NewGuid(), "Bond");
             user.Rename("James Bond");
-            var changeLog = user.GetUncommittedChanges().ToList();
+            var changeLog = user.Changes.GetUncommittedChanges().ToList();
 
             // When
             using var db = NewDbContext();
@@ -58,7 +57,7 @@ namespace EventSourcingDoor.Tests
 
             // When
             user.Rename("James Bond");
-            var changeLog = user.GetUncommittedChanges().ToList();
+            var changeLog = user.Changes.GetUncommittedChanges().ToList();
             await db.SaveChangesAsync();
 
             // Then
@@ -88,7 +87,7 @@ namespace EventSourcingDoor.Tests
 
             // When
             user.Delete();
-            var changeLog = user.GetUncommittedChanges().ToList();
+            var changeLog = user.Changes.GetUncommittedChanges().ToList();
             db.Users.Remove(user);
             await db.SaveChangesAsync();
 
@@ -169,7 +168,7 @@ namespace EventSourcingDoor.Tests
             // Given
             var id = Guid.NewGuid();
             var user = new UserAggregate(id, "Bond");
-            var changeLog = user.GetUncommittedChanges().ToList();
+            var changeLog = user.Changes.GetUncommittedChanges().ToList();
             using var db = NewDbContext();
             db.Users.Add(user);
             await db.SaveChangesAsync();
@@ -200,7 +199,7 @@ namespace EventSourcingDoor.Tests
             // Given
             var id = Guid.NewGuid();
             var user = new UserAggregate(id, "Bond");
-            var changeLog = user.GetUncommittedChanges().ToList();
+            var changeLog = user.Changes.GetUncommittedChanges().ToList();
             using var db = NewDbContext();
             db.Users.Add(user);
             await db.SaveChangesAsync();
