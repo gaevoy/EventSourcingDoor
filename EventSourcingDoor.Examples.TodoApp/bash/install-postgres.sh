@@ -1,0 +1,1 @@
+docker run --name blog-postgres -d -e POSTGRES_PASSWORD=sa123 -e PGDATA=/var/lib/postgresql/data/pgdata -v /apps/blog-postgres:/var/lib/postgresql/data -p 5432:5432 --restart unless-stopped postgres:13

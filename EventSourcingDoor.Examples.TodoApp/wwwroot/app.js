@@ -4,13 +4,13 @@ const Goals = {
         return {goals: [], newGoalDescription: ""};
     },
     created() {
-        fetch('/api/goals')
+        fetch('api/goals')
             .then(response => response.json())
             .then(data => this.goals = data);
     },
     methods: {
         setGoal() {
-            fetch(`/api/goals?description=${encodeURIComponent(this.newGoalDescription)}`, {method: 'POST'})
+            fetch(`api/goals?description=${encodeURIComponent(this.newGoalDescription)}`, {method: 'POST'})
                 .then(response => response.json())
                 .then(goalId => {
                     this.goals.push({
@@ -29,14 +29,14 @@ const Tasks = {
     },
     created() {
         let goalId = this.$route.params.goalId;
-        fetch(`/api/goals/${encodeURIComponent(goalId)}/tasks`)
+        fetch(`api/goals/${encodeURIComponent(goalId)}/tasks`)
             .then(response => response.json())
             .then(data => this.tasks = data);
     },
     methods: {
         addTask() {
             let goalId = this.$route.params.goalId;
-            fetch(`/api/goals/${encodeURIComponent(goalId)}/tasks?description=${encodeURIComponent(this.newTaskDescription)}`, {method: 'POST'})
+            fetch(`api/goals/${encodeURIComponent(goalId)}/tasks?description=${encodeURIComponent(this.newTaskDescription)}`, {method: 'POST'})
                 .then(response => response.json())
                 .then(taskId => {
                     this.tasks.push({
@@ -49,13 +49,13 @@ const Tasks = {
                 });
         },
         changeTask(task) {
-            fetch(`/api/goals/${encodeURIComponent(task.goalId)}/tasks/${encodeURIComponent(task.id)}?description=${encodeURIComponent(task.description)}`, {method: 'PUT'})
+            fetch(`api/goals/${encodeURIComponent(task.goalId)}/tasks/${encodeURIComponent(task.id)}?description=${encodeURIComponent(task.description)}`, {method: 'PUT'})
                 .then(response => {
                     // TODO: Check status
                 });
         },
         finishTask(task) {
-            fetch(`/api/goals/${encodeURIComponent(task.goalId)}/tasks/${encodeURIComponent(task.id)}`, {method: 'DELETE'})
+            fetch(`api/goals/${encodeURIComponent(task.goalId)}/tasks/${encodeURIComponent(task.id)}`, {method: 'DELETE'})
                 .then(response => {
                     // TODO: Check status
                 });
