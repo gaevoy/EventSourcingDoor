@@ -1,9 +1,15 @@
+using System;
+using EventSourcingDoor.NEventStore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NEventStore;
+using NEventStore.Persistence.Sql.SqlDialects;
+using NEventStore.Serialization.Json;
+using Npgsql;
 
 namespace EventSourcingDoor.Examples.TodoApp
 {
@@ -29,6 +35,15 @@ namespace EventSourcingDoor.Examples.TodoApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddHostedService<OutboxListener>();
+            services.AddSingleton<IStoreEvents>(_ =>
+                Wireup.Init()
+                    .UsingSqlPersistence(NpgsqlFactory.Instance, ConnectionString)
+                    .WithDialect(new PostgreSqlDialect())
+                    .UsingJsonSerialization()
+                    .Build());
+            services.AddSingleton<IOutbox>(container =>
+                new NEventStoreOutbox(container.GetService<IStoreEvents>(), TimeSpan.FromSeconds(1)));
             services.AddDbContext<TodoDbContext>(options => options.UseNpgsql(ConnectionString));
         }
 
@@ -47,6 +62,7 @@ namespace EventSourcingDoor.Examples.TodoApp
             using var scope = app.ApplicationServices.CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
             dbContext.Database.EnsureCreated();
+            scope.ServiceProvider.GetRequiredService<IStoreEvents>().Advanced.Initialize();
         }
     }
 }

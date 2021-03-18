@@ -62,6 +62,23 @@ const Tasks = {
         }
     }
 };
+const Events = {
+    template: '#events-template',
+    data() {
+        return {events: []};
+    },
+    created() {
+        new EventSource('api/events').addEventListener('message', message => {
+            let event = JSON.parse(message.data);
+            this.events.unshift(event);
+        });
+    },
+    methods: {
+        close(event) {
+            this.events.splice(this.events.indexOf(event), 1);
+        }
+    }
+};
 Vue.directive('focus', {
     inserted: function (el) {
         el.focus()
@@ -69,6 +86,9 @@ Vue.directive('focus', {
 });
 const app = new Vue({
     el: '#app',
+    components: {
+        "events": Events
+    },
     router: new VueRouter({
         routes: [
             {path: '/', component: Goals},
